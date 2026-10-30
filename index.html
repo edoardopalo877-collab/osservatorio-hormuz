@@ -246,6 +246,35 @@ table.data th{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-t
 td.est{font-style:italic;color:var(--muted)}
 .upd{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
 @media (max-width:900px){.two{grid-template-columns:minmax(0,1fr)}}
+.rel-list{display:none;list-style:none;margin:0;padding:0;flex-direction:column;gap:8px}
+.rel-list li{background:var(--paper);border:1px solid var(--rule);border-left:4px solid var(--lc);border-radius:8px;padding:9px 12px;font-size:14px}
+.rel-list li b{display:block;font-family:var(--display);font-stretch:90%;font-size:15.5px}
+.rel-list li.ten{border-left-style:dashed}
+.rel-list li span{color:var(--muted);font-size:13.5px}
+.rel-hint{display:none;font-size:13px;color:var(--muted);margin:14px 0 6px}
+@media (max-width:640px){
+  header.top{padding-block:18px 12px}
+  header.top h1{font-size:26px}
+  header.top p.lede{font-size:14px;margin-top:8px}
+  .status{font-size:11.5px;gap:4px 12px;margin-top:10px}
+  .status .st-next{display:none}
+  nav.sec .wrap{flex-wrap:wrap;overflow:visible;gap:4px;padding-block:6px}
+  nav.sec a{font-size:13.5px;padding:5px 9px}
+  section,.page{scroll-margin-top:96px}
+  .page{padding-block:20px 6px}
+  .tile .v{font-size:25px}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .tile{padding:10px 11px}
+  .chartbox{padding:8px 6px 4px}
+  .chartbox text{font-size:12.5px}
+  .ckey{font-size:12px;gap:4px 12px}
+  .rel-list{display:flex}
+  .rel-hint{display:block}
+  .relinfo{display:none}
+  .box{padding:13px 14px}
+  .info{padding:13px}
+  .timeline .ev{flex-basis:130px}
+}
 @media (max-width:560px){.news li{grid-template-columns:minmax(0,1fr)}.news .imp{justify-self:start}}
 </style>
 </head>
@@ -257,8 +286,8 @@ td.est{font-style:italic;color:var(--muted)}
   <p class="lede">Persone, proposte, luoghi e notizie della crisi di Hormuz, con una stima di quanto del prezzo del Brent dipende da domanda e offerta e quanto dal rischio. Le notizie da una sola fonte regionale o da X sono segnate come non confermate.</p>
   <div class="status">
     <span><i class="dot"></i>Nessun accordo in vigore</span>
-    <span id="st-upd">Aggiornato: 30 ott 2026, 17:30 ora italiana</span>
-    <span>Prossimo aggiornamento: ogni giorno alle 7:58 e alle 20:52 (ora italiana)</span>
+    <span id="st-upd">Aggiornato: 30 ott 2026, 17:50 ora italiana</span>
+    <span class="st-next">Prossimo aggiornamento: ogni giorno alle 7:58 e alle 20:52 (ora italiana)</span>
   </div>
   <div class="disclaimer">Non è consulenza finanziaria</div>
 </div></header>
@@ -339,7 +368,9 @@ td.est{font-style:italic;color:var(--muted)}
 <section class="page" id="personaggi" hidden><div class="wrap">
   <h2>Personaggi e relazioni</h2>
   <p class="intro">Chi parla con chi, e attraverso chi. A sinistra Washington, a destra Teheran, al centro i mediatori. Tocca un nome per vedere solo i suoi legami.</p>
-  <div class="graphbox">
+  <ul class="rel-list" id="rel-list" aria-label="Elenco delle relazioni"></ul>
+  <p class="rel-hint">Qui sotto lo schema completo: scorri di lato per vederlo tutto.</p>
+  <div class="graphbox" id="graphbox">
     <svg id="rel" viewBox="0 0 960 620" role="img" aria-label="Schema delle relazioni tra gli attori della trattativa"></svg>
     <div class="rlegend">
       <span><i class="sw" style="background:var(--med)"></i>mediazione</span>
@@ -649,7 +680,7 @@ td.est{font-style:italic;color:var(--muted)}
   <p class="note" style="margin-top:14px">Coordinate dei luoghi approssimate. Le basi USA sono le posizioni note prima della guerra. Confini: Natural Earth. Non è consulenza finanziaria.</p>
 </div></section>
 
-<footer><div class="wrap"><p>Osservatorio Hormuz · aggiornato 30 ott 2026, 17:30 ora italiana · Non è consulenza finanziaria.</p></div></footer>
+<footer><div class="wrap"><p>Osservatorio Hormuz · aggiornato 30 ott 2026, 17:50 ora italiana · Non è consulenza finanziaria.</p></div></footer>
 
 <script>
 /* ===== DATI AGGIORNABILI ===== */
@@ -788,6 +819,9 @@ N.forEach(function(n){
   g.addEventListener("click",pick);
   g.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();pick()}});
 });
+var rlist=document.getElementById("rel-list");
+eEls.forEach(function(e,i){var li=document.createElement("li");var t=E[i][2];li.style.setProperty("--lc",ECOL[t]);if(t==="ten")li.className="ten";
+  var b=document.createElement("b");b.textContent=byId[e.a].n+" → "+byId[e.b].n;var s=document.createElement("span");s.textContent=e.lab;li.appendChild(b);li.appendChild(s);rlist.appendChild(li)});
 var curRel=null;
 function selRel(id){
   if(curRel===id){curRel=null;rel.classList.remove("rel-dim");N.forEach(function(n){n.g.classList.remove("sel","on")});eEls.forEach(function(e){e.g.classList.remove("on")});
@@ -813,7 +847,7 @@ function draw(){
   var mid=model(p0,k,e),lo=model(p0,Math.max(0.01,k-0.01),e+0.05),hi=model(p0,k+0.01,Math.max(0.04,e-0.02));
   /* chart 1 */
   c1.innerHTML="";
-  var W=900,H=380,L=46,R=118,T=16,B=32,y0=50,y1=140;
+  var M=(c1.parentNode.clientWidth||900)<600,W=M?420:900,H=M?320:380,L=M?30:46,R=M?72:118,T=16,B=32,y0=50,y1=140;c1.setAttribute("viewBox","0 0 "+W+" "+H);
   var x=function(i){return L+(W-L-R)*i/11},y=function(v){return T+(H-T-B)*(1-(v-y0)/(y1-y0))};
   for(var v=60;v<=140;v+=20){el("line",{x1:L,x2:W-R,y1:y(v),y2:y(v),"class":"gl"},c1);var tt=el("text",{x:L-6,y:y(v)+4,"text-anchor":"end"},c1);tt.textContent=v}
   var u=el("text",{x:L,y:T+2,"text-anchor":"start"},c1);u.textContent="";
@@ -833,13 +867,13 @@ function draw(){
   el("circle",{cx:tx,cy:y(TODAY.v),r:4.5,fill:"var(--act)"},c1);
   /* etichette finali */
   var lb=function(txt,yy,col){var t=el("text",{x:W-R+10,y:yy+4,"text-anchor":"start",style:"fill:"+col+";font-weight:500"},c1);t.textContent=txt};
-  lb("oggi "+fmt(TODAY.v,0)+" $",y(TODAY.v),"var(--act)");
-  lb("ott ~"+fmt(ACT[LAST],0)+" $",Math.max(y(ACT[LAST])+14,y(TODAY.v)+16),"var(--act)");
-  lb("stima dic "+fmt(mid[11],0)+" $",y(mid[11]),"var(--fund)");
+  var U=M?"":" $";lb("oggi "+fmt(TODAY.v,0)+U,y(TODAY.v),"var(--act)");
+  lb("ott ~"+fmt(ACT[LAST],0)+U,Math.max(y(ACT[LAST])+14,y(TODAY.v)+16),"var(--act)");
+  lb((M?"stima ":"stima dic ")+fmt(mid[11],0)+U,y(mid[11]),"var(--fund)");
   /* premio di oggi */
   var fx=x(LAST)+(x(1)-x(0))*0.95,fT=(mid[LAST]+mid[LAST+1])/2;
   el("line",{x1:fx,x2:fx,y1:y(TODAY.v)+6,y2:y(fT)-2,stroke:"var(--prem)","stroke-width":2},c1);
-  var pt=el("text",{x:fx-6,y:(y(TODAY.v)+y(fT))/2+4,"text-anchor":"end",style:"fill:var(--prem);font-weight:500"},c1);pt.textContent="premio ~"+fmt(TODAY.v-fT,0)+" $";
+  var pt=el("text",{x:fx-(M?4:6),y:(y(TODAY.v)+y(fT))/2+4,"text-anchor":"end",style:"fill:var(--prem);font-weight:500"},c1);pt.textContent=(M?"+":"premio ~")+fmt(TODAY.v-fT,0)+" $";
   /* hover */
   var tip=document.getElementById("tip1"),wrap=document.getElementById("c1wrap");
   var cur=el("line",{y1:T,y2:H-B,stroke:"var(--ink)","stroke-width":1,opacity:0},c1);
@@ -854,14 +888,14 @@ function draw(){
   ov.addEventListener("pointerleave",function(){tip.hidden=true;cur.setAttribute("opacity",0)});
   /* chart 2 */
   c2.innerHTML="";
-  var H2=260,T2=14,B2=30,R2=40,pr=[];for(var i=0;i<=LAST;i++)pr.push(ACT[i]-mid[i]);pr.push(TODAY.v-fT);
-  var mx=10*Math.ceil(Math.max(30,Math.max.apply(null,pr.map(Math.abs)))/10);
+  var H2=M?230:260,T2=14,B2=30,R2=M?6:40,pr=[];for(var i=0;i<=LAST;i++)pr.push(ACT[i]-mid[i]);pr.push(TODAY.v-fT);
+  c2.setAttribute("viewBox","0 0 "+W+" "+H2);var mx=10*Math.ceil(Math.max(30,Math.max.apply(null,pr.map(Math.abs)))/10);
   var n2=pr.length,bw=(W-L-R2)/n2,y2=function(v){return T2+(H2-T2-B2)*(1-(v+mx)/(2*mx))};
   for(var v2=-mx;v2<=mx;v2+=10){el("line",{x1:L,x2:W-R2,y1:y2(v2),y2:y2(v2),"class":v2===0?"ax":"gl"},c2);var t3=el("text",{x:L-6,y:y2(v2)+4,"text-anchor":"end"},c2);t3.textContent=(v2>0?"+":"")+v2}
   pr.forEach(function(v,i){var cx=L+bw*i+bw/2,col=v>=0?"var(--prem)":"var(--disc)",isT=i===n2-1;
     el("rect",{x:cx-bw*0.3,y:Math.min(y2(v),y2(0)),width:bw*0.6,height:Math.max(1,Math.abs(y2(v)-y2(0))),fill:col,opacity:isT?1:.85,rx:2},c2);
     var tv=el("text",{x:cx,y:v>=0?y2(v)-5:y2(v)+13,"text-anchor":"middle",style:"fill:var(--ink)"},c2);tv.textContent=Math.abs(v)<0.5?"0":sg(v,0);
-    var tm=el("text",{x:cx,y:H2-B2+18,"text-anchor":"middle",style:isT?"fill:var(--ink);font-weight:500":""},c2);tm.textContent=isT?"oggi":MESI[i]});
+    var tm=el("text",{x:cx,y:H2-B2+18,"text-anchor":"middle",style:isT?"fill:var(--ink);font-weight:500":""},c2);tm.textContent=isT?(M?"ora":"oggi"):(M?MESI[i].charAt(0):MESI[i])});
   var ul=el("text",{x:L,y:T2-2+8,"text-anchor":"start"},c2);ul.textContent="$/barile";
   /* tiles */
   var pf=mid[LAST],pp=ACT[LAST]-pf,ft2=fT,tp=TODAY.v-ft2;
@@ -886,6 +920,8 @@ function draw(){
 ["in-p0","in-k","in-e"].forEach(function(id){document.getElementById(id).addEventListener("input",draw)});
 document.getElementById("b-reset").addEventListener("click",function(){document.getElementById("in-p0").value=BASE.p0;document.getElementById("in-k").value=BASE.k;document.getElementById("in-e").value=BASE.e;draw()});
 draw();show();
+var lastM=null;window.addEventListener("resize",function(){var m=(c1.parentNode.clientWidth||900)<600;if(m!==lastM&&c1.parentNode.clientWidth>0){lastM=m;draw()}});
+window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")draw()});
 })();
 </script>
 <script>
