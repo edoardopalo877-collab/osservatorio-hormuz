@@ -16,7 +16,7 @@ except Exception as e:
 for id_, title in elenco.items():
     try:
         s = jget("https://en.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(title))
-        fname = urllib.parse.unquote(s["originalimage"]["source"].split("/")[-1])
+        fname = urllib.parse.unquote(s["originalimage"]["source"].split("?")[0].split("/")[-1])
         q = jget("https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=600&titles=" + urllib.parse.quote("File:" + fname))
         page = next(iter(q["query"]["pages"].values()))
         if "imageinfo" not in page:
