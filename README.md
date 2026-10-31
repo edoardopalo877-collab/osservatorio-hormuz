@@ -2,6 +2,6 @@
 
 Trattative USA-Iran, crisi di Hormuz e prezzo del petrolio: notizie, personaggi, mappa e stima del prezzo da domanda e offerta.
 
-Sito: https://edoardopalo877-collab.github.io/osservatorio-hormuz/
+Sito: https://osservatoriohormuz.com/
 
 Non è consulenza finanziaria.
