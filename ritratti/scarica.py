@@ -5,10 +5,18 @@ UA = {"User-Agent": "OsservatorioHormuz/1.0 (https://osservatoriohormuz.com; edo
 def get(url):
     return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30).read()
 def jget(url):
-    return json.loads(get(url))
+    import time
+    for i in range(4):
+        d = json.loads(get(url))
+        if "error" not in d: return d
+        print("errore API, riprovo:", d["error"].get("code")); time.sleep(3 * (i + 1))
+    return d
 FREE = re.compile(r"^(CC0|CC BY|Public domain|PD|GFDL|Attribution)", re.I)
 elenco = json.load(open("ritratti/elenco.json"))
-crediti = {}
+try:
+    crediti = json.load(open("ritratti/crediti.json"))
+except Exception:
+    crediti = {}
 try:
     casc = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 except Exception as e:
