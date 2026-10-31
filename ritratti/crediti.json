@@ -1,1 +1,62 @@
-{}
+{
+ "trump": {
+  "file": "Official_Presidential_Portrait_of_President_Donald_J._Trump_(2025).jpg",
+  "licenza": "Public domain",
+  "autore": "Daniel Torok",
+  "faccia": true
+ },
+ "vance": {
+  "file": "March_2026_Official_Vice_Presidential_Portrait_of_JD_Vance_(medium_crop)_(2).jpg",
+  "licenza": "Public domain",
+  "autore": "Emily J. Higgins",
+  "faccia": true
+ },
+ "mkhamenei": {
+  "file": "Portrait_of_Mojtaba_Khamenei.jpg",
+  "licenza": "CC BY 4.0",
+  "autore": "khamenei.ir",
+  "faccia": true
+ },
+ "rezaei": {
+  "file": "MohsenRezaeeMilitaryUniform_(cropped_portrait).jpg",
+  "licenza": "CC BY 4.0",
+  "autore": "Unknown authorUnknown author",
+  "faccia": true
+ },
+ "ghalibaf": {
+  "file": "Mohammmad_Bagher_Ghalibaf_2025.jpg",
+  "licenza": "CC BY 4.0",
+  "autore": "Mohsen Ranginkaman",
+  "faccia": true
+ },
+ "althani": {
+  "file": "Mohammed_bin_Abdulrahman_Al-Thani_of_Qatar_on_25_January_2024_-_2_(cropped).jpg",
+  "licenza": "CC BY 2.0",
+  "autore": "UK Government",
+  "faccia": true
+ },
+ "mbs": {
+  "file": "الصورة_الرسمية_للأمير_محمد_بن_سلمان_بن_عبدالعزيز_آل_سعود_(مقصوصة).jpg",
+  "licenza": "CC BY-SA 4.0",
+  "autore": "وكالة الأنباء السعودية",
+  "faccia": true
+ },
+ "houthi": {
+  "file": "عبدالملک_حوثی.jpg",
+  "licenza": "CC BY 2.0",
+  "autore": "Wikishia",
+  "faccia": true
+ },
+ "sharif": {
+  "file": "Economic_Cooperation_Organization_July_2025_-_1751655083_(cropped).jpg",
+  "licenza": "CC BY 4.0",
+  "autore": "Press Service of the President of the Republic of Azerbaijan",
+  "faccia": true
+ },
+ "erdogan": {
+  "file": "Turkish_President_Recep_Tayyip_Erdoğan_in_January_2024_(cropped).jpg",
+  "licenza": "CC BY 2.0",
+  "autore": "Rory Arnold",
+  "faccia": true
+ }
+}
