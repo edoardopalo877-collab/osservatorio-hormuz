@@ -15,18 +15,30 @@ except Exception as e:
     print("riconoscimento volti non disponibile:", e); casc = None
 for id_, title in elenco.items():
     try:
-        s = jget("https://en.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(title))
-        fname = urllib.parse.unquote(s["originalimage"]["source"].split("?")[0].split("/")[-1])
-        q = jget("https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=600&titles=" + urllib.parse.quote("File:" + fname))
-        page = next(iter(q["query"]["pages"].values()))
-        if "imageinfo" not in page:
-            print(id_, "non su Commons:", fname); continue
-        ii = page["imageinfo"][0]; md = ii.get("extmetadata", {})
-        lic = md.get("LicenseShortName", {}).get("value", "")
-        if not FREE.search(lic):
-            print(id_, "licenza non libera:", lic); continue
+        cands = []
+        try:
+            s = jget("https://en.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(title))
+            cands.append(urllib.parse.unquote(s["originalimage"]["source"].split("?")[0].split("/")[-1]))
+        except Exception as e:
+            print(id_, "riassunto Wikipedia non disponibile:", e)
+        sr = jget("https://commons.wikimedia.org/w/api.php?action=query&format=json&list=search&srnamespace=6&srlimit=8&srsearch=" + urllib.parse.quote(title.replace("_", " ") + " filetype:bitmap"))
+        cands += [r["title"][5:] for r in sr["query"]["search"]]
+        ii = None
+        for fname in cands:
+            q = jget("https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=600&titles=" + urllib.parse.quote("File:" + fname))
+            page = next(iter(q["query"]["pages"].values()))
+            if "imageinfo" not in page:
+                print(id_, "non su Commons:", fname); continue
+            md = page["imageinfo"][0].get("extmetadata", {})
+            lic = md.get("LicenseShortName", {}).get("value", "")
+            if not FREE.search(lic):
+                print(id_, "licenza non libera:", fname, lic); continue
+            ii = page["imageinfo"][0]; fname = page["title"][5:].replace(" ", "_"); break
+        if ii is None:
+            print(id_, "NESSUNA FOTO LIBERA"); continue
         artist = re.sub(r"<[^>]+>", "", md.get("Artist", {}).get("value", ""))
         artist = re.sub(r"\s+", " ", html.unescape(artist)).strip()[:80]
+        if "Unknown author" in artist: artist = "autore sconosciuto"
         img = cv2.imdecode(np.frombuffer(get(ii["thumburl"]), np.uint8), cv2.IMREAD_COLOR)
         h, w = img.shape[:2]
         faces = [] if casc is None else casc.detectMultiScale(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 1.1, 5, minSize=(w // 10, w // 10))
