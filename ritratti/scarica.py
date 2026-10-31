@@ -24,11 +24,14 @@ except Exception as e:
 for id_, title in elenco.items():
     try:
         cands = []
-        try:
-            s = jget("https://en.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(title))
-            cands.append(urllib.parse.unquote(s["originalimage"]["source"].split("?")[0].split("/")[-1]))
-        except Exception as e:
-            print(id_, "riassunto Wikipedia non disponibile:", e)
+        for lang in ("en", "it", "de", "fr", "es"):
+            try:
+                s = jget(f"https://{lang}.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(title))
+                f = urllib.parse.unquote(s["originalimage"]["source"].split("?")[0].split("/")[-1])
+                if f not in cands: cands.append(f)
+            except Exception as e:
+                print(id_, lang, "riassunto Wikipedia non disponibile:", e)
+        nwiki = len(cands)
         sr = jget("https://commons.wikimedia.org/w/api.php?action=query&format=json&list=search&srnamespace=6&srlimit=8&srsearch=" + urllib.parse.quote(title.replace("_", " ") + " filetype:bitmap"))
         cands += [r["title"][5:] for r in sr["query"]["search"]]
         ii = None
@@ -41,6 +44,11 @@ for id_, title in elenco.items():
             lic = md.get("LicenseShortName", {}).get("value", "")
             if not FREE.search(lic):
                 print(id_, "licenza non libera:", fname, lic); continue
+            if cands.index(fname) >= nwiki:
+                im = cv2.imdecode(np.frombuffer(get(page["imageinfo"][0]["thumburl"]), np.uint8), cv2.IMREAD_COLOR)
+                ww = im.shape[1]
+                if casc is None or not len(casc.detectMultiScale(cv2.cvtColor(im, cv2.COLOR_BGR2GRAY), 1.1, 5, minSize=(ww // 5, ww // 5))):
+                    print(id_, "nessun volto grande:", fname); continue
             ii = page["imageinfo"][0]; fname = page["title"][5:].replace(" ", "_"); break
         if ii is None:
             print(id_, "NESSUNA FOTO LIBERA"); continue
