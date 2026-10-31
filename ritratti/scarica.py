@@ -9,7 +9,10 @@ def jget(url):
 FREE = re.compile(r"^(CC0|CC BY|Public domain|PD|GFDL|Attribution)", re.I)
 elenco = json.load(open("ritratti/elenco.json"))
 crediti = {}
-casc = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+try:
+    casc = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+except Exception as e:
+    print("riconoscimento volti non disponibile:", e); casc = None
 for id_, title in elenco.items():
     try:
         s = jget("https://en.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(title))
@@ -26,7 +29,7 @@ for id_, title in elenco.items():
         artist = re.sub(r"\s+", " ", html.unescape(artist)).strip()[:80]
         img = cv2.imdecode(np.frombuffer(get(ii["thumburl"]), np.uint8), cv2.IMREAD_COLOR)
         h, w = img.shape[:2]
-        faces = casc.detectMultiScale(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 1.1, 5, minSize=(w // 10, w // 10))
+        faces = [] if casc is None else casc.detectMultiScale(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 1.1, 5, minSize=(w // 10, w // 10))
         if len(faces):
             x, y, fw, fh = max(faces, key=lambda f: f[2] * f[3])
             cx, cy, side = x + fw / 2, y + fh / 2 + fh * 0.08, fw * 1.7
