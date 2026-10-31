@@ -143,6 +143,13 @@ svg#map{display:block;width:100%;height:auto;background:var(--sea);aspect-ratio:
 @media (prefers-reduced-motion:no-preference){.pulse{animation:pulse 2.4s ease-out infinite;transform-box:fill-box;transform-origin:center}}
 @keyframes pulse{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(1.8)}}
 .offmap{font-family:var(--mono);fill:var(--med);font-weight:500}
+.ld{cursor:pointer}.ld:focus{outline:none}.ld:focus-visible .ldring{stroke-width:4}
+.ldring{fill:none;stroke-width:2.5}.ld.sel .ldring{stroke:var(--ink)!important;stroke-width:3.5}
+.ldini{font-family:var(--display);font-weight:800;font-size:14px;fill:#fff;pointer-events:none}
+.ldname,.ldcap{font-family:var(--body);font-weight:600;font-size:10.5px;fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:3px;stroke-linejoin:round}
+.ldcap{font-family:var(--mono);font-weight:500;fill:var(--us)}
+.ldline{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3}
+.info .credit{font-size:11.5px;color:var(--muted)}.info .credit:empty{display:none}
 .info{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px;position:sticky;top:64px}
 .info h3{font-size:21px;font-weight:800;font-stretch:85%}
 .info .cat{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase}
@@ -562,12 +569,14 @@ td.est{font-style:italic;color:var(--muted)}
         <g id="overlay"></g>
         <g id="labels"></g>
         <g id="markers"></g>
+        <g id="leaders"></g>
       </svg>
       <div class="layers" role="group" aria-label="Livelli">
         <label><input type="checkbox" id="l-nuc" data-l="nuc" checked>Siti nucleari</label>
         <label><input type="checkbox" id="l-oil" data-l="oil" checked>Petrolio</label>
         <label><input type="checkbox" id="l-us" data-l="us" checked>Basi USA</label>
         <label><input type="checkbox" id="l-city" data-l="city" checked>Città e mediatori</label>
+        <label><input type="checkbox" id="l-lead" data-l="lead" checked>Leader</label>
       </div>
     </div>
     <aside class="info" aria-live="polite">
@@ -575,6 +584,7 @@ td.est{font-style:italic;color:var(--muted)}
       <h3 id="i-title">Stretto di Hormuz</h3>
       <p id="i-text"></p>
       <p class="why" id="i-why"></p>
+      <p class="credit" id="i-credit"></p>
       <div class="legend" aria-label="Legenda">
         <div><svg width="18" height="18" viewBox="-9 -9 18 18"><circle r="6" style="fill:var(--nuc)"/><circle r="2.2" style="fill:var(--paper)"/></svg>Sito nucleare</div>
         <div><svg width="18" height="18" viewBox="-9 -9 18 18"><rect x="-5.5" y="-5.5" width="11" height="11" style="fill:var(--oil)"/></svg>Impianto petrolifero</div>
@@ -1025,6 +1035,7 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
   function select(id){
     var p=mks[id];
     PTS.forEach(function(q){q.g.classList.toggle("sel",q.id===id)});
+    for(var lk in LDS)LDS[lk].g.classList.remove("sel");credit(null);
     gM.appendChild(p.g);
     document.getElementById("i-cat").textContent=CAT[p.c];
     document.getElementById("i-cat").style.color=COL[p.c];
@@ -1039,15 +1050,117 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
     var h=w*700/836;var ppu=Math.min(w/vb[2],h/vb[3]);var k=1/ppu;
     var lvl=ppu>1.1?3:ppu>0.8?2:1;
     PTS.forEach(function(p){p.s.setAttribute("transform","scale("+k.toFixed(4)+")");p.te.style.fontSize=(p.c==="hot"?13.5:12)+"px";p.te.style.display=p.pr<=lvl||p.g.classList.contains("sel")?"":"none"});
+    var kl=k*(ppu<0.6?0.8:1);LG.forEach(function(g){g.setAttribute("transform","scale("+kl.toFixed(4)+")")});
     labelEls.forEach(function(o){o.e.style.fontSize=(o.base*k).toFixed(2)+"px";o.e.style.display=o.pr<=Math.max(lvl,ppu>0.55?2:1)?"":"none";o.e.style.strokeWidth=(3*k)+"px"});
   }
   document.querySelectorAll(".maptools button").forEach(function(b){b.addEventListener("click",function(){cur=b.dataset.z;document.querySelectorAll(".maptools button").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});layout()})});
   document.querySelectorAll(".layers input").forEach(function(i){i.addEventListener("change",function(){var on=i.checked,l=i.dataset.l;document.querySelectorAll('#map [data-l="'+l+'"]').forEach(function(e){e.style.display=on?"":"none"})})});
   window.addEventListener("resize",layout);
+  /* Leader: ritratti da Wikipedia/Wikimedia Commons caricati dal browser; mostrati solo se il file ha una licenza libera su Commons */
+  var SIDE={us:"var(--us)",ir:"var(--ir)",med:"var(--med)"};
+  var LCL=[
+    {at:[62.3,21.5],cap:"Da Washington",lines:false,m:[
+      {id:"trump",w:"Donald_Trump",n:"Donald Trump",sn:"Trump",s:"us",dx:-60,dy:0,r:"Presidente degli Stati Uniti",t:"Ha l'ultima parola su accordo o raid. Alterna aperture e minacce.",y:"Alcune fonti parlano di possibili raid dal 4 novembre (MS NOW, non confermato). Una sua decisione è il fattore che oggi muove di più il Brent."},
+      {id:"vance",w:"JD_Vance",n:"JD Vance",sn:"Vance",s:"us",dx:-20,dy:0,r:"Vicepresidente degli Stati Uniti",t:"Ha scritto a Rezaei proponendo colloqui diretti guidati da lui, con il nucleare come primo punto.",y:"Se i colloqui diretti a Doha partono, sarà probabilmente lui a guidare la delegazione USA."}]},
+    {at:[51.39,35.69],lines:true,m:[
+      {id:"mkhamenei",w:"Mojtaba_Khamenei",n:"Mojtaba Khamenei",sn:"Khamenei",s:"ir",dx:96,dy:16,r:"Guida suprema dell'Iran",t:"Ha l'ultima parola sulla linea iraniana, sopra governo e Parlamento.",y:"Il 31 ottobre ha avvertito Trump di una \"ritorsione senza limiti\" in caso di nuovi raid."},
+      {id:"rezaei",w:"Mohsen_Rezaei",n:"Mohsen Rezaei",sn:"Rezaei",s:"ir",dx:144,dy:16,r:"Segretario del Consiglio supremo di sicurezza nazionale",t:"È il destinatario della lettera di Vance. A settembre ha annunciato le 7 condizioni per trattare.",y:"Ha aperto a riaprire Hormuz in 4-5 giorni invece di 7 se le condizioni vengono accolte."},
+      {id:"araghchi",w:"Abbas_Araghchi",n:"Abbas Araghchi",sn:"Araghchi",s:"ir",dx:96,dy:62,r:"Ministro degli Esteri",t:"Il volto negoziale. Tiene il canale con Qatar e Pakistan.",y:"Il 31 ottobre su X: \"le linee rosse sono state superate\". Le sue parole spostano le attese sui colloqui."},
+      {id:"ghalibaf",w:"Mohammad_Bagher_Ghalibaf",n:"Mohammad Bagher Ghalibaf",sn:"Ghalibaf",s:"ir",dx:144,dy:62,r:"Presidente del Parlamento",t:"Fissa i paletti pubblici: senza le 7 condizioni Hormuz resta chiuso.",y:"Alle condizioni ora aggiunge garanzie contro nuovi raid."}]},
+    {at:[51.53,25.29],lines:true,m:[
+      {id:"althani",w:"Mohammed_bin_Abdulrahman_Al_Thani",n:"Mohammed bin Abdulrahman Al Thani",sn:"Al Thani",s:"med",dx:4,dy:46,r:"Primo ministro e ministro degli Esteri del Qatar",t:"Guida la mediazione: il Qatar ha portato a Teheran la lettera di Vance e le bozze.",y:"Doha è la sede probabile dei colloqui diretti USA-Iran."}]},
+    {at:[46.72,24.69],lines:true,m:[
+      {id:"mbs",w:"Mohammed_bin_Salman",n:"Mohammed bin Salman",sn:"bin Salman",s:"med",dx:-22,dy:42,r:"Principe ereditario e primo ministro saudita",t:"Guida il primo esportatore di greggio, bersaglio degli Houthi.",y:"Riad chiede a Washington più tempo per negoziare ed esporta in parte da Yanbu per evitare Hormuz."}]},
+    {at:[44.21,15.35],lines:true,m:[
+      {id:"houthi",w:"Abdul-Malik_al-Houthi",n:"Abdul-Malik al-Houthi",sn:"al-Houthi",s:"ir",dx:-44,dy:-10,r:"Leader del movimento Houthi (Yemen)",t:"Dirige gli attacchi con missili e droni contro l'Arabia Saudita e il traffico nel Mar Rosso.",y:"Le rivendicazioni su Ras Tanura, Abqaiq e Rabigh (non confermate da Riad) alzano il premio di rischio."}]},
+    {at:[62,33.7],lines:false,m:[
+      {id:"sharif",w:"Shehbaz_Sharif",n:"Shehbaz Sharif",sn:"Sharif",s:"med",dx:-14,dy:70,r:"Primo ministro del Pakistan",t:"A Islamabad è nato il memorandum di giugno. Il Pakistan lavora in tandem con il Qatar.",y:"È il secondo canale se quello del Qatar si blocca."}]},
+    {at:[33,36.8],lines:false,m:[
+      {id:"erdogan",w:"Recep_Tayyip_Erdo%C4%9Fan",n:"Recep Tayyip Erdoğan",sn:"Erdoğan",s:"med",dx:30,dy:22,r:"Presidente della Turchia",t:"La Turchia era una delle sedi possibili dei colloqui diretti e ha aperto un canale con Teheran.",y:"Secondo Al Arabiya (non confermato) i colloqui diretti si terrebbero a Doha e non a Istanbul."}]}
+  ];
+  var gLd=document.getElementById("leaders"),LG=[],LDS={};
+  LCL.forEach(function(c){
+    var xy=P(c.at[0],c.at[1]);
+    var g=el("g",{"data-l":"lead",transform:"translate("+xy[0].toFixed(1)+","+xy[1].toFixed(1)+")"},gLd);
+    var s=el("g",{},g);LG.push(s);
+    if(c.cap){var ct=el("text",{"class":"ldcap",x:(c.m[0].dx+c.m[c.m.length-1].dx)/2,y:-24,"text-anchor":"middle"},s);ct.textContent=c.cap}
+    c.m.forEach(function(L){
+      if(c.lines)el("line",{"class":"ldline",x1:0,y1:0,x2:L.dx,y2:L.dy},s);
+    });
+    c.m.forEach(function(L){
+      var lg=el("g",{"class":"ld",tabindex:"0",role:"button","aria-label":L.n},s);
+      el("circle",{cx:L.dx,cy:L.dy,r:"15",fill:SIDE[L.s]},lg);
+      var ini=el("text",{"class":"ldini",x:L.dx,y:L.dy+4,"text-anchor":"middle"},lg);ini.textContent=L.sn.replace(/^(al-|bin )/,"").charAt(0);
+      var cp=el("clipPath",{id:"cp-"+L.id},lg);el("circle",{cx:L.dx,cy:L.dy,r:"13.2"},cp);
+      L.img=el("image",{x:L.dx-13.2,y:L.dy-13.2,width:"26.4",height:"26.4","clip-path":"url(#cp-"+L.id+")",preserveAspectRatio:"xMidYMin slice"},lg);
+      L.img.style.display="none";
+      el("circle",{"class":"ldring",cx:L.dx,cy:L.dy,r:"14",stroke:SIDE[L.s]},lg);
+      var nm=el("text",{"class":"ldname",x:L.dx,y:L.dy+26,"text-anchor":"middle"},lg);nm.textContent=L.sn;
+      L.g=lg;LDS[L.id]=L;
+      lg.addEventListener("click",function(){selectLead(L.id)});
+      lg.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();selectLead(L.id)}});
+    });
+  });
+  var SIDEN={us:"Leader · Stati Uniti",ir:"Leader · Iran e alleati",med:"Leader · mediatori e terzi"};
+  function selectLead(id){
+    var L=LDS[id];
+    PTS.forEach(function(q){q.g.classList.remove("sel")});
+    for(var k in LDS)LDS[k].g.classList.toggle("sel",k===id);
+    var c=document.getElementById("i-cat");c.textContent=SIDEN[L.s];c.style.color=SIDE[L.s];
+    document.getElementById("i-title").textContent=L.n;
+    document.getElementById("i-text").textContent=L.r+". "+L.t;
+    document.getElementById("i-why").textContent=L.y;
+    credit(L);
+  }
+  function credit(L){
+    var cr=document.getElementById("i-credit");cr.textContent="";
+    if(!L)return;
+    if(L.ph){cr.appendChild(document.createTextNode("Foto: "+(L.ph.a||"autore su Commons")+", "+L.ph.l+", "));var a=document.createElement("a");a.href="https://commons.wikimedia.org/wiki/File:"+encodeURIComponent(L.ph.f);a.target="_blank";a.rel="noopener";a.textContent="Wikimedia Commons";cr.appendChild(a)}
+    else cr.textContent="Foto non disponibile: mostriamo solo ritratti con licenza libera da Wikimedia Commons.";
+  }
+  window.__credit=function(){for(var k in LDS)if(LDS[k].g.classList.contains("sel"))credit(LDS[k])};
+  function applyPhotos(map){
+    for(var id in map){var L=LDS[id],p=map[id];if(!L||!p||!p.u)continue;L.ph=p;L.img.setAttribute("href",p.u);L.img.style.display=""}
+    window.__credit();
+  }
+  (function loadPhotos(){
+    var KEY="oh-lead-photos-v1",cached=null;
+    try{cached=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+    if(cached&&cached.t&&Date.now()-cached.t<7*864e5){applyPhotos(cached.m);return}
+    if(!window.fetch)return;
+    var ids=Object.keys(LDS);
+    Promise.all(ids.map(function(id){
+      return fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+LDS[id].w).then(function(r){return r.ok?r.json():null}).then(function(j){
+        if(!j||!j.originalimage||!j.thumbnail)return null;
+        var f=decodeURIComponent(j.originalimage.source.split("/").pop());
+        return {id:id,f:f,u:j.thumbnail.source.replace(/\/\d+px-/,"/120px-")};
+      }).catch(function(){return null});
+    })).then(function(list){
+      list=list.filter(Boolean);if(!list.length)return;
+      var q="https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiprop=extmetadata&titles="+list.map(function(x){return encodeURIComponent("File:"+x.f)}).join("|");
+      return fetch(q).then(function(r){return r.json()}).then(function(j){
+        var pages=(j.query&&j.query.pages)||{},byT={},norm={};
+        ((j.query&&j.query.normalized)||[]).forEach(function(n){norm[n.from]=n.to});
+        for(var k in pages){var pg=pages[k];if(pg.missing!==undefined||!pg.imageinfo)continue;var md=pg.imageinfo[0].extmetadata||{};
+          var lic=md.LicenseShortName&&md.LicenseShortName.value;if(!lic)continue;
+          var tmp=new DOMParser().parseFromString((md.Artist&&md.Artist.value)||"","text/html").body;
+          byT[pg.title]={l:lic,a:tmp.textContent.trim().replace(/\s+/g," ").slice(0,80)}}
+        var m={};
+        list.forEach(function(x){var t="File:"+x.f;t=norm[t]||t;var info=byT[t];if(info)m[x.id]={u:x.u,f:x.f,l:info.l,a:info.a}});
+        try{localStorage.setItem(KEY,JSON.stringify({t:Date.now(),m:m}))}catch(e){}
+        applyPhotos(m);
+      });
+    }).catch(function(){});
+  })();
   // elenco luoghi
   var groups=[["Punti critici e città",["hormuz","tehran","doha","riyadh","sanaa","telaviv","bandar"]],["Siti nucleari",["fordow","natanz","isfahan","khondab","bushehr"]],["Petrolio",["rastanura","abqaiq","rabigh","yanbu","kharg"]],["Basi USA",["udeid","bahrain","dhafra","arifjan","psab","salti"]]];
   var box=document.getElementById("places");
   var ZOOM={hormuz:"gulf",bandar:"gulf",kharg:"gulf",rastanura:"gulf",abqaiq:"gulf",doha:"gulf",udeid:"gulf",bahrain:"gulf",dhafra:"gulf",arifjan:"gulf",psab:"gulf",riyadh:"gulf",fordow:"nuc",natanz:"nuc",isfahan:"nuc",khondab:"nuc",tehran:"nuc",bushehr:"gulf",rabigh:"red",yanbu:"red",sanaa:"red"};
+  (function(){var h=document.createElement("h4");h.textContent="Leader";var ul=document.createElement("ul");
+    Object.keys(LDS).forEach(function(id){var L=LDS[id];var li=document.createElement("li");var b=document.createElement("button");b.type="button";b.textContent=L.n;
+      b.addEventListener("click",function(){cur="all";document.querySelectorAll(".maptools button").forEach(function(x){x.setAttribute("aria-pressed",x.dataset.z===cur?"true":"false")});selectLead(id);layout();svg.scrollIntoView({block:"center"})});
+      li.appendChild(b);ul.appendChild(li)});
+    var wrap=document.createElement("div");wrap.appendChild(h);wrap.appendChild(ul);box.appendChild(wrap)})();
   groups.forEach(function(gr){
     var h=document.createElement("h4");h.textContent=gr[0];
     var ul=document.createElement("ul");
