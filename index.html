@@ -140,6 +140,17 @@ section>.wrap>p.intro{max-width:70ch;color:var(--muted);margin:8px 0 22px}
 .eco-take{margin-top:18px;max-width:80ch}.eco-take p{font-size:14.5px}
 @media (max-width:800px){.eco-two{grid-template-columns:minmax(0,1fr)}.flow{grid-template-columns:minmax(0,1fr)}.farrow{transform:rotate(90deg);line-height:1}}
 /* governo */
+.gn-wrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start}
+.gn-box svg text{font-family:var(--body);font-size:15px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:4px;stroke-linejoin:round}
+.gn-box svg text.sub{font-family:var(--mono);font-size:11.5px;font-weight:500;fill:var(--muted)}
+.gn-box svg text.el{font-family:var(--mono);font-size:12px;font-weight:500}
+.gn-n{cursor:pointer}.gn-n:focus{outline:none}.gn-n:focus-visible circle.rg{stroke-width:6}
+.gn-e{fill:none;stroke-width:2.2;transition:opacity .15s}
+.gn-dim{opacity:.12}
+.gn-info{position:sticky;top:64px}.gn-info ul{margin:8px 0 0;padding-left:18px;font-size:13.5px;display:flex;flex-direction:column;gap:6px}
+.gn-reset{margin-top:10px;font-family:var(--body);font-size:13px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);border-radius:6px;padding:5px 10px;cursor:pointer}
+@media (max-width:900px){.gn-wrap{grid-template-columns:minmax(0,1fr)}.gn-info{position:static}}
+@media (max-width:600px){.gn-box{overflow-x:auto}.gn-box svg{min-width:640px}}
 .v.gv-s{font-size:21px}
 .gv-schema{display:flex;flex-direction:column;gap:8px}
 .gv-tier{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:12px}
@@ -800,6 +811,21 @@ td.est{font-style:italic;color:var(--muted)}
   <h3 class="sub">Chi sono, carica per carica</h3>
   <div id="gv-cards"></div>
   <p class="note" style="margin-top:8px">Cariche verificate su Wikipedia (pagine aggiornate fino ad agosto 2026) e nelle notizie di ottobre. Il ruolo del primo vicepresidente Aref non è stato confermato da una fonte recente. Il capo di stato maggiore delle forze armate non è indicato: secondo Wikipedia il posto è vacante dal 28 febbraio, ma un'altra tabella cita il generale Ali Abdollahi. Foto: Wikimedia Commons, licenze libere, con autore e licenza sotto ogni scheda.</p>
+
+  <h3 class="sub">La mappa dei collegamenti</h3>
+  <p class="note" style="max-width:75ch;margin-bottom:10px">Chi nomina chi, chi controlla chi e chi sta dalla stessa parte. Le frecce viola vanno da chi nomina a chi è nominato. Tocca un volto per vedere solo i suoi legami e leggerli nel riquadro. Sul telefono scorri la mappa di lato.</p>
+  <div class="gn-wrap">
+    <div class="chartbox gn-box">
+      <div class="ckey">
+        <span><i class="sw" style="background:var(--nuc)"></i>Nomina o elegge</span>
+        <span><i class="sw" style="background:repeating-linear-gradient(90deg,var(--us) 0 5px,transparent 5px 8px)"></i>Controllo istituzionale</span>
+        <span><i class="sw" style="background:var(--med)"></i>Stessa fazione o alleanza</span>
+        <span><i class="sw" style="background:repeating-linear-gradient(90deg,var(--ir) 0 2px,transparent 2px 5px)"></i>Tensione</span>
+      </div>
+      <svg id="gn" viewBox="0 0 900 650" role="img" aria-label="Mappa dei collegamenti tra i vertici iraniani"></svg>
+    </div>
+    <aside class="box gn-info" aria-live="polite"><h3 id="gn-t">Tutti i legami</h3><p class="note" id="gn-p">Tocca un volto nella mappa.</p><ul id="gn-l"></ul><button type="button" id="gn-reset" class="gn-reset" hidden>Mostra tutti</button></aside>
+  </div>
 
   <h3 class="sub">Cosa ha cambiato la guerra</h3>
   <ol class="eco-phases">
@@ -1475,6 +1501,98 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
   window.addEventListener("hashchange",mark);mark();
 })();
 </script>
+<script>
+/* Mappa dei collegamenti nella pagina Governo */
+(function(){
+  var svg=document.getElementById("gn");if(!svg)return;
+  var PH=window.RITRATTI||{},NS="http://www.w3.org/2000/svg";
+  function el(n,a,p){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+  var N={
+    mkhamenei:{n:"Mojtaba Khamenei",r:"Guida suprema",x:450,y:85,c:"var(--ir)"},
+    kermani:{n:"Movahedi Kermani",r:"Assemblea degli Esperti",x:170,y:85,c:"var(--nuc)"},
+    jannati:{n:"Jannati",r:"Consiglio dei Guardiani",x:110,y:290,c:"var(--nuc)"},
+    ejei:{n:"Mohseni-Ejei",r:"Magistratura",x:285,y:245,c:"var(--nuc)"},
+    larijani:{n:"Sadeq Larijani",r:"Consiglio per il discernimento",x:150,y:480,c:"var(--nuc)"},
+    vahidi:{n:"Vahidi",r:"Pasdaran",x:615,y:190,c:"var(--ir)"},
+    rezaei:{n:"Rezaei",r:"Consiglio di sicurezza",x:800,y:95,c:"var(--ir)"},
+    ghalibaf:{n:"Ghalibaf",r:"Parlamento",x:790,y:390,c:"var(--us)"},
+    pezeshkian:{n:"Pezeshkian",r:"Presidente",x:450,y:345,c:"var(--us)"},
+    aref:{n:"Aref",r:"Primo vicepresidente",x:310,y:515,c:"var(--us)"},
+    araghchi:{n:"Araghchi",r:"Esteri",x:610,y:530,c:"var(--us)"},
+    hemmati:{n:"Hemmati",r:"Banca centrale",x:455,y:560,c:"var(--us)"}
+  };
+  /* t: nom = nomina/elegge, ctl = controllo istituzionale, all = fazione/alleanza, ten = tensione */
+  var E=[
+    ["kermani","mkhamenei","nom","L'Assemblea degli Esperti che presiede ha eletto Mojtaba Guida l'8 marzo 2026"],
+    ["mkhamenei","ejei","nom","Il capo della magistratura è nominato dalla Guida (Ejei dal 2021)"],
+    ["mkhamenei","jannati","nom","La Guida nomina i 6 religiosi del Consiglio dei Guardiani"],
+    ["mkhamenei","larijani","nom","La Guida nomina il Consiglio per il discernimento"],
+    ["mkhamenei","vahidi","nom","La Guida nomina il comandante dei Pasdaran"],
+    ["mkhamenei","rezaei","ctl","La nomina del segretario del Consiglio di sicurezza richiede l'assenso della Guida; le decisioni del Consiglio valgono solo con il suo sì"],
+    ["mkhamenei","pezeshkian","ctl","La Guida conferma l'elezione del presidente e ha l'ultima parola su guerra, nucleare e trattativa"],
+    ["mkhamenei","vahidi","all","Mojtaba ha legami stretti con i Pasdaran"],
+    ["pezeshkian","rezaei","nom","Il presidente ha nominato Rezaei segretario del Consiglio di sicurezza il 9 agosto 2026"],
+    ["pezeshkian","aref","nom","Il presidente nomina il primo vicepresidente"],
+    ["pezeshkian","araghchi","nom","Il presidente nomina i ministri, con la fiducia del Parlamento"],
+    ["pezeshkian","hemmati","nom","Il governo ha richiamato Hemmati alla Banca centrale a dicembre 2025"],
+    ["pezeshkian","aref","all","Entrambi dell'area riformista"],
+    ["jannati","pezeshkian","ctl","Il Consiglio dei Guardiani ha ammesso la candidatura di Pezeshkian nel 2024"],
+    ["ejei","jannati","nom","Il capo della magistratura propone i 6 giuristi del Consiglio dei Guardiani"],
+    ["ejei","pezeshkian","all","Insieme nel consiglio provvisorio che ha guidato l'Iran dal 1 all'8 marzo 2026"],
+    ["ghalibaf","araghchi","ctl","Il Parlamento vota la fiducia ai ministri e fissa i paletti alla trattativa"],
+    ["ghalibaf","hemmati","ten","Il Parlamento ha sfiduciato Hemmati come ministro dell'Economia a marzo 2025"],
+    ["ghalibaf","araghchi","ten","Ghalibaf tiene la linea dura (\"il bastone e la carota non funzionano\") mentre Araghchi apre al dialogo"],
+    ["rezaei","vahidi","all","Entrambi ex generali dei Pasdaran, la vecchia guardia della guerra con l'Iraq"],
+    ["ghalibaf","vahidi","all","Ghalibaf è un ex comandante dei Pasdaran"],
+    ["rezaei","araghchi","all","Rezaei fissa le condizioni (le 7 richieste), Araghchi le porta al tavolo con Qatar e Pakistan"],
+    ["larijani","ejei","all","Larijani è stato capo della magistratura prima di Raisi ed Ejei; area conservatrice"],
+    ["vahidi","araghchi","ten","I Pasdaran controllano Hormuz: attacchi alle petroliere e mine possono smentire le aperture diplomatiche"]
+  ];
+  var COL={nom:"var(--nuc)",ctl:"var(--us)",all:"var(--med)",ten:"var(--ir)"},DASH={nom:"",ctl:"7 5",all:"",ten:"2 5"};
+  var TN={nom:"nomina",ctl:"controllo",all:"alleanza",ten:"tensione"};
+  var df=el("defs",{},svg),mk=el("marker",{id:"gn-arr",viewBox:"0 0 10 10",refX:String(10+37),refY:"5",markerWidth:"12",markerHeight:"12",markerUnits:"userSpaceOnUse",orient:"auto"},df);el("path",{d:"M0,0 L10,5 L0,10Z"},mk).style.fill="var(--nuc)";
+  var gE=el("g",{},svg),gN=el("g",{},svg),R=34,edges=[];
+  /* coppie con più legami: curve sfalsate */
+  var seen={};
+  E.forEach(function(e){
+    var a=N[e[0]],b=N[e[1]],key=[e[0],e[1]].sort().join("-");var k=seen[key]=(seen[key]||0)+1;
+    var mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dx=b.x-a.x,dy=b.y-a.y,len=Math.sqrt(dx*dx+dy*dy);
+    var off=(k===1?0:(k===2?28:-28));var cx=mx-dy/len*off,cy=my+dx/len*off;
+    var p=el("path",{"class":"gn-e",d:"M"+a.x+","+a.y+" Q"+cx+","+cy+" "+b.x+","+b.y,stroke:COL[e[2]]},gE);
+    p.style.stroke=COL[e[2]];if(DASH[e[2]])p.setAttribute("stroke-dasharray",DASH[e[2]]);
+    if(e[2]==="nom")p.setAttribute("marker-end","url(#gn-arr)");
+    edges.push({e:e,p:p});
+  });
+  Object.keys(N).forEach(function(id){
+    var d=N[id];var g=el("g",{"class":"gn-n",transform:"translate("+d.x+","+d.y+")",tabindex:"0",role:"button","aria-label":d.n+", "+d.r},gN);
+    el("circle",{r:R+3,fill:"var(--paper)"},g).style.fill="var(--paper)";
+    var cp=el("clipPath",{id:"gnc-"+id},g);el("circle",{r:R},cp);
+    var ph=PH[id];
+    if(ph){var im=el("image",{x:-R,y:-R,width:2*R,height:2*R,"clip-path":"url(#gnc-"+id+")",preserveAspectRatio:"xMidYMin slice"},g);im.setAttribute("href",ph.u)}
+    var rg=el("circle",{"class":"rg",r:R,fill:"none","stroke-width":"4"},g);rg.style.stroke=d.c;
+    var t=el("text",{y:R+20,"text-anchor":"middle"},g);t.textContent=d.n;
+    var s=el("text",{"class":"sub",y:R+35,"text-anchor":"middle"},g);s.textContent=d.r;
+    d.g=g;
+    g.addEventListener("click",function(){sel(id)});
+    g.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();sel(id)}});
+  });
+  var T=document.getElementById("gn-t"),P=document.getElementById("gn-p"),L=document.getElementById("gn-l"),B=document.getElementById("gn-reset");
+  function all(){
+    edges.forEach(function(o){o.p.classList.remove("gn-dim")});Object.keys(N).forEach(function(id){N[id].g.classList.remove("gn-dim")});
+    T.textContent="Tutti i legami";P.textContent="Tocca un volto nella mappa.";L.innerHTML="";B.hidden=true;
+  }
+  function sel(id){
+    var keep={};keep[id]=1;L.innerHTML="";
+    edges.forEach(function(o){var on=o.e[0]===id||o.e[1]===id;o.p.classList.toggle("gn-dim",!on);
+      if(on){var other=o.e[0]===id?o.e[1]:o.e[0];keep[other]=1;var li=document.createElement("li");var b=document.createElement("b");b.textContent=N[other].n;b.style.color=COL[o.e[2]];li.appendChild(b);li.appendChild(document.createTextNode(" ("+TN[o.e[2]]+"): "+o.e[3]));L.appendChild(li)}});
+    Object.keys(N).forEach(function(k){N[k].g.classList.toggle("gn-dim",!keep[k])});
+    T.textContent=N[id].n;P.textContent=N[id].r;B.hidden=false;
+  }
+  B.addEventListener("click",all);
+  svg.addEventListener("click",function(ev){if(ev.target===svg)all()});
+})();
+</script>
+
 
 
 
