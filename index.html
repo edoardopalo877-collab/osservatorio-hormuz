@@ -1663,5 +1663,14 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
 
 
 
+<script data-goatcounter="https://osservatoriohormuz.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script>
+(function(){
+  var f=document.querySelector('footer .wrap p');if(!f)return;
+  var s=document.createElement('span');s.id='visite';f.appendChild(document.createTextNode(' · '));f.appendChild(s);
+  fetch('https://osservatoriohormuz.goatcounter.com/counter/TOTAL.json').then(function(r){return r.ok?r.json():null}).then(function(j){
+    if(j&&j.count)s.textContent='Visite totali: '+j.count;}).catch(function(){});
+})();
+</script>
 </body>
 </html>
