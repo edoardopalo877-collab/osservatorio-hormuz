@@ -1663,6 +1663,8 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
 
 
 
+<script>window.goatcounter={path:function(p){var h=location.hash.slice(1);return "/"+(h||"panoramica")}};
+window.addEventListener("hashchange",function(){if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:"/"+(location.hash.slice(1)||"panoramica")})});</script>
 <script data-goatcounter="https://osservatoriohormuz.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <script>
 (function(){
