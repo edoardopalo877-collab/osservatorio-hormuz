@@ -882,6 +882,31 @@ td.est{font-style:italic;color:var(--muted)}
     <svg id="c2" viewBox="0 0 900 260" role="img" aria-label="Grafico del premio mensile"></svg>
   </div>
 
+  <h3 class="sub">Lo stesso conto per il WTI americano</h3>
+  <p class="note" style="max-width:75ch;margin-bottom:10px">Il WTI è il greggio di riferimento negli Stati Uniti. Per la stima uso lo stesso modello del Brent, scalato sul rapporto WTI/Brent di prima della guerra (media gen-feb: WTI 62,3 $, Brent 68,7 $, cioè circa 0,91). Il premio del WTI è più basso perché gli USA producono più greggio di quanto ne importano e il loro mercato è meno esposto a Hormuz.</p>
+  <div class="tiles" style="margin-bottom:12px">
+    <div class="tile act"><div class="k">WTI medio ottobre</div><div class="v" id="w-act">—</div><div class="s">stima, ~103 $ a fine ottobre</div></div>
+    <div class="tile fund"><div class="k">WTI da domanda e offerta</div><div class="v" id="w-fund">—</div><div class="s" id="w-fund-s"></div></div>
+    <div class="tile prem"><div class="k">Premio WTI di ottobre</div><div class="v" id="w-prem">—</div><div class="s" id="w-prem-s"></div></div>
+  </div>
+  <div class="chartbox">
+    <div class="ckey">
+      <span><i class="sw" style="background:var(--act)"></i>WTI, media mensile</span>
+      <span><i class="sw" style="background:var(--fund)"></i>Stima da domanda e offerta</span>
+      <span><i class="sw" style="background:var(--fund-soft);height:10px"></i>Forbice delle ipotesi</span>
+    </div>
+    <svg id="c3" viewBox="0 0 900 340" role="img" aria-label="Grafico del WTI effettivo e stimato nel 2026"></svg>
+  </div>
+  <h3 class="sub">Premio a confronto: Brent e WTI</h3>
+  <div class="chartbox">
+    <div class="ckey">
+      <span><i class="sw" style="background:var(--prem);height:10px"></i>Premio Brent</span>
+      <span><i class="sw" style="background:var(--med);height:10px"></i>Premio WTI</span>
+    </div>
+    <svg id="c4" viewBox="0 0 900 260" role="img" aria-label="Premio mensile del Brent e del WTI a confronto"></svg>
+  </div>
+  <p class="note" style="margin-top:6px">WTI: medie mensili EIA (via crudeoilprice.org); ottobre stimato perché la serie si ferma al 6 ottobre. Le barre negative indicano un prezzo sotto la stima. Non è consulenza finanziaria.</p>
+
   <h3 class="sub">Cambia le ipotesi</h3>
   <div class="controls">
     <label for="in-p0">Prezzo di partenza prima della guerra <output id="o-p0"></output><input type="range" id="in-p0" min="60" max="78" step="0.1" value="68.7"><small>Media gen-feb 2026 = 68,7 $, con il mercato in eccesso di offerta.</small></label>
@@ -1104,6 +1129,47 @@ function selRel(id){
 /* ---------- modello prezzo ---------- */
 var BASE={p0:68.7,k:0.04,e:0.10};
 function model(p0,k,e){var cum=0,out=[];for(var i=0;i<12;i++){cum+=STK[i];var F=-STK[i]/DAYS[i],D=-cum/DEM;out.push(p0*Math.exp(k*D+F/(DEM*e)))}return out}
+/* ---------- WTI ---------- */
+var ACT_W=[60.04,64.51,91.38,100.32,102.13,84.81,80.46,83.90,97.31,100,null,null]; /* ott = stima */
+var RW=(60.04+64.51)/(66.60+70.89);
+function drawWTI(mid,lo,hi,M){
+  var c3=document.getElementById("c3"),c4=document.getElementById("c4");if(!c3)return;
+  var fw=mid.map(function(v){return v*RW}),lw=lo.map(function(v){return v*RW}),hw=hi.map(function(v){return v*RW});
+  c3.innerHTML="";var W=M?420:900,H=M?300:340,L=M?30:46,R=M?84:110,T=16,B=32,y0=50,y1=130;c3.setAttribute("viewBox","0 0 "+W+" "+H);
+  var x=function(i){return L+(W-L-R)*i/11},y=function(v){return T+(H-T-B)*(1-(v-y0)/(y1-y0))};
+  for(var v=50;v<=130;v+=20){el("line",{x1:L,x2:W-R,y1:y(v),y2:y(v),"class":"gl"},c3);var tt=el("text",{x:L-6,y:y(v)+4,"text-anchor":"end"},c3);tt.textContent=v}
+  MESI.forEach(function(m,i){var t=el("text",{x:x(i),y:H-B+18,"text-anchor":"middle"},c3);t.textContent=m});
+  el("line",{x1:L,x2:W-R,y1:H-B,y2:H-B,"class":"ax"},c3);
+  var band="M"+hw.map(function(v,i){return x(i).toFixed(1)+","+y(v).toFixed(1)}).join(" L")+" L"+lw.map(function(v,i){return x(11-i).toFixed(1)+","+y(lw[11-i]).toFixed(1)}).join(" L")+"Z";
+  el("path",{d:band,fill:"var(--fund-soft)",opacity:.9},c3);
+  var pm=function(arr,a,b){var s="";for(var i=a;i<=b;i++)s+=(i===a?"M":"L")+x(i).toFixed(1)+","+y(arr[i]).toFixed(1);return s};
+  el("path",{d:pm(fw,0,LAST),fill:"none",stroke:"var(--fund)","stroke-width":2.4},c3);
+  el("path",{d:pm(fw,LAST,11),fill:"none",stroke:"var(--fund)","stroke-width":2.4,"stroke-dasharray":"5 4"},c3);
+  el("path",{d:pm(ACT_W,0,LAST),fill:"none",stroke:"var(--act)","stroke-width":2.6},c3);
+  ACT_W.forEach(function(v,i){if(v!==null)el("circle",{cx:x(i),cy:y(v),r:i===LAST?4.5:3,fill:i===LAST?"var(--paper)":"var(--act)",stroke:"var(--act)","stroke-width":1.6},c3)});
+  var U=M?"":" $";
+  var l1=el("text",{x:W-R+10,y:y(ACT_W[LAST])+4,"text-anchor":"start",style:"fill:var(--act);font-weight:500"},c3);l1.textContent="ott ~"+fmt(ACT_W[LAST],0)+U;
+  var l2=el("text",{x:W-R+10,y:y(fw[11])+4,"text-anchor":"start",style:"fill:var(--fund);font-weight:500"},c3);l2.textContent=(M?"stima ":"stima dic ")+fmt(fw[11],0)+U;
+  /* confronto premi */
+  c4.innerHTML="";var H2=M?230:260,T2=14,B2=30,R2=M?6:40;c4.setAttribute("viewBox","0 0 "+W+" "+H2);
+  var pb=[],pw=[];for(var i=0;i<=LAST;i++){pb.push(ACT[i]-mid[i]);pw.push(ACT_W[i]-fw[i])}
+  var mx=10*Math.ceil(Math.max(30,Math.max.apply(null,pb.concat(pw).map(Math.abs)))/10);
+  var n=pb.length,bw=(W-L-R2)/n,y2=function(v){return T2+(H2-T2-B2)*(1-(v+mx)/(2*mx))};
+  for(var v2=-mx;v2<=mx;v2+=10){el("line",{x1:L,x2:W-R2,y1:y2(v2),y2:y2(v2),"class":v2===0?"ax":"gl"},c4);var t3=el("text",{x:L-6,y:y2(v2)+4,"text-anchor":"end"},c4);t3.textContent=(v2>0?"+":"")+v2}
+  for(var j=0;j<n;j++){var cx=L+bw*j+bw/2;
+    [[pb[j],"var(--prem)",-1],[pw[j],"var(--med)",1]].forEach(function(o){var v=o[0],xx=cx+o[2]*bw*0.17;
+      el("rect",{x:xx-bw*0.15,y:Math.min(y2(v),y2(0)),width:bw*0.3,height:Math.max(1,Math.abs(y2(v)-y2(0))),fill:o[1],rx:2},c4);
+      if(!M){var tv=el("text",{x:xx,y:v>=0?y2(v)-5:y2(v)+13,"text-anchor":"middle",style:"fill:var(--ink);font-size:10px"},c4);tv.textContent=Math.abs(v)<0.5?"0":sg(v,0)}});
+    var tm=el("text",{x:cx,y:H2-B2+18,"text-anchor":"middle"},c4);tm.textContent=M?MESI[j].charAt(0):MESI[j]}
+  var ul=el("text",{x:W-R2,y:T2+6,"text-anchor":"end"},c4);ul.textContent="$/barile";
+  /* tiles */
+  var pf=fw[LAST],pp=ACT_W[LAST]-pf;
+  document.getElementById("w-act").textContent="~"+fmt(ACT_W[LAST],0)+" $";
+  document.getElementById("w-fund").textContent="~"+fmt(pf,0)+" $";
+  document.getElementById("w-fund-s").textContent="forbice "+fmt(lw[LAST],0)+"–"+fmt(hw[LAST],0)+" $";
+  document.getElementById("w-prem").textContent=sg(pp,0)+" $";
+  document.getElementById("w-prem-s").textContent="circa il "+fmt(100*pp/ACT_W[LAST],0)+"% del prezzo; Brent "+sg(ACT[LAST]-mid[LAST],0)+" $";
+}
 var c1=document.getElementById("c1"),c2=document.getElementById("c2");
 function draw(){
   var p0=+document.getElementById("in-p0").value,k=+document.getElementById("in-k").value,e=+document.getElementById("in-e").value;
@@ -1182,6 +1248,7 @@ function draw(){
   for(var j=0;j<12;j++){cum+=STK[j];var est=STK_EST[j]?' class="est"':"";
     h+="<tr><td>"+MESI[j]+"</td><td"+est+">"+(STK[j]===0?"0":sg(STK[j],0))+"</td><td"+est+">"+fmt(-STK[j]/DAYS[j],2)+"</td><td"+est+">"+fmt(-cum/DEM,1)+"</td><td>"+fmt(mid[j],1)+"</td><td>"+fmt(lo[j],0)+"–"+fmt(hi[j],0)+"</td><td"+(j===LAST?' class="est"':"")+">"+(ACT[j]===null?"—":fmt(ACT[j],2))+"</td><td>"+(ACT[j]===null?"—":sg(ACT[j]-mid[j],1))+"</td></tr>"}
   document.getElementById("tbl").innerHTML=h+"</tbody>";
+  drawWTI(mid,lo,hi,M);
 }
 ["in-p0","in-k","in-e"].forEach(function(id){document.getElementById(id).addEventListener("input",draw)});
 document.getElementById("b-reset").addEventListener("click",function(){document.getElementById("in-p0").value=BASE.p0;document.getElementById("in-k").value=BASE.k;document.getElementById("in-e").value=BASE.e;draw()});
