@@ -118,6 +118,27 @@ section>.wrap>p.intro{max-width:70ch;color:var(--muted);margin:8px 0 22px}
 .timeline .ev::before{content:"";position:absolute;top:-7px;left:0;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--ink)}
 .timeline .ev.hot::before{background:var(--warn);border-color:var(--warn)}
 .timeline .d{font-family:var(--mono);font-size:12px;color:var(--muted);display:block;margin-top:6px}
+/* economia */
+.tile.eco-bad{border-top:4px solid var(--ir)} .tile.eco-bad .v{color:var(--ir)}
+.eco-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.eco-two h4,.eco-stack h4{font-family:var(--display);font-stretch:85%;font-size:16px;margin:2px 0 8px}
+.eco-two .note{margin:6px 0 8px}
+.sbar{display:flex;height:34px;border-radius:6px;overflow:hidden;border:1px solid var(--rule)}
+.sbar span{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11.5px;color:#fff;min-width:0;overflow:hidden;white-space:nowrap}
+.slist{list-style:none;padding:0;margin:10px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:4px 14px;font-size:13.5px}
+.slist li{display:flex;gap:8px;align-items:baseline}.slist i{width:10px;height:10px;border-radius:2px;flex:none;display:inline-block}
+.slist b{font-variant-numeric:tabular-nums}
+.flow{display:grid;grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr) 22px minmax(0,.8fr) 22px minmax(0,1fr);align-items:center;gap:8px}
+.fcol{display:flex;flex-direction:column;gap:8px}
+.fnode{background:var(--paper);border:1px solid var(--rule);border-left:4px solid var(--neutral);border-radius:8px;padding:8px 10px;font-size:13px}
+.fnode b{display:block;font-family:var(--display);font-stretch:85%;font-size:15px}
+.fnode span{color:var(--muted)}
+.fnode.oil{border-left-color:var(--oil)} .fnode.ir{border-left-color:var(--ir)}
+.farrow{font-size:22px;color:var(--muted);text-align:center}
+.flow-now{margin-top:12px;background:var(--ir-soft);border-left:4px solid var(--ir);border-radius:8px;padding:10px 12px;font-size:14px}
+.eco-phases{padding-left:20px;display:flex;flex-direction:column;gap:8px;max-width:80ch;font-size:14.5px}
+.eco-take{margin-top:18px;max-width:80ch}.eco-take p{font-size:14.5px}
+@media (max-width:800px){.eco-two{grid-template-columns:minmax(0,1fr)}.flow{grid-template-columns:minmax(0,1fr)}.farrow{transform:rotate(90deg);line-height:1}}
 /* mappa */
 .mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
 .mapbox{background:var(--paper);border:1px solid var(--rule);border-radius:10px;overflow:hidden;min-width:0}
@@ -300,7 +321,7 @@ td.est{font-style:italic;color:var(--muted)}
 </div></header>
 
 <nav class="sec" aria-label="Pagine"><div class="wrap">
-  <a href="#panoramica">Panoramica</a><a href="#notizie">Notizie</a><a href="#personaggi">Personaggi</a><a href="#proposte">Proposte</a><a href="#mappa">Mappa</a><a href="#prezzo">Prezzo giusto?</a><a href="#fonti">Fonti e metodo</a>
+  <a href="#panoramica">Panoramica</a><a href="#notizie">Notizie</a><a href="#personaggi">Personaggi</a><a href="#proposte">Proposte</a><a href="#mappa">Mappa</a><a href="#economia">Economia Iran</a><a href="#prezzo">Prezzo giusto?</a><a href="#fonti">Fonti e metodo</a>
 </div></nav>
 
 <!-- PANORAMICA -->
@@ -599,6 +620,110 @@ td.est{font-style:italic;color:var(--muted)}
 
 </div></section>
 
+<!-- ECONOMIA -->
+<section class="page" id="economia" hidden><div class="wrap">
+  <h2>L'economia dell'Iran</h2>
+  <p class="intro">Quanto vale l'economia iraniana, da cosa è fatta, come circolano i soldi del petrolio e cosa è cambiato dall'inizio della guerra a fine febbraio 2026. I dati iraniani sono incompleti e spesso in ritardo: per ogni numero indichiamo la fonte e l'anno, e segnaliamo le stime.</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="k">PIL 2025</div><div class="v">371 mld $</div><div class="s">FMI, a prezzi correnti</div></div>
+    <div class="tile eco-bad"><div class="k">PIL 2026</div><div class="v">−7,6%</div><div class="s">previsione FMI di ottobre, ~312 mld $</div></div>
+    <div class="tile eco-bad"><div class="k">Inflazione</div><div class="v">~70-90%</div><div class="s">annua; il cibo oltre il 100%</div></div>
+    <div class="tile eco-bad"><div class="k">Rial</div><div class="v">~2,7 mln</div><div class="s">per 1 $ al mercato libero (ott), ~1 mln a inizio 2025</div></div>
+    <div class="tile eco-bad"><div class="k">Export di greggio via mare</div><div class="v">0</div><div class="s">da fine agosto, per il blocco navale USA</div></div>
+  </div>
+
+  <h3 class="sub">Quanto vale: il PIL anno per anno</h3>
+  <div class="chartbox">
+    <div class="ckey"><span><i class="sw" style="background:var(--neutral)"></i>Dato</span><span><i class="sw" style="background:var(--ir)"></i>Stima 2026</span><span><i class="sw" style="background:repeating-linear-gradient(90deg,var(--neutral) 0 4px,transparent 4px 7px)"></i>Proiezione</span></div>
+    <svg id="eco-gdp" viewBox="0 0 900 300" role="img" aria-label="PIL nominale dell'Iran dal 2023 al 2027 in miliardi di dollari"></svg>
+  </div>
+  <p class="note" style="margin-top:6px">Miliardi di dollari a prezzi correnti, FMI World Economic Outlook di ottobre 2026 (tabella riportata da Worldometer). In dollari il calo è più forte della crescita reale perché il rial si svaluta. A parità di potere d'acquisto il PIL vale circa 1.850 miliardi (2025).</p>
+
+  <h3 class="sub">Da cosa è fatto</h3>
+  <div class="eco-two">
+    <div class="chartbox eco-stack">
+      <h4>Chi produce (settori, quota del PIL)</h4>
+      <div class="sbar" id="eco-sup"></div>
+      <ul class="slist" id="eco-sup-l"></ul>
+      <p class="note">Stima indicativa prima della crisi. Petrolio e gas 8,6% del PIL a prezzi costanti (Banca Mondiale, 2023/24); a prezzi correnti la quota sale quando il greggio è caro. Agricoltura 12,8% (Statista, 2023). Industria e servizi: ordine di grandezza dai conti nazionali (circa 35% l'industria compreso il petrolio, oltre metà i servizi).</p>
+    </div>
+    <div class="chartbox eco-stack">
+      <h4>Come si usa (domanda, quota del PIL)</h4>
+      <div class="sbar" id="eco-dem"></div>
+      <ul class="slist" id="eco-dem-l"></ul>
+      <p class="note">Stima CIA World Factbook per il 2017, l'ultima scomposizione completa disponibile. Esportazioni 26% e importazioni 25% del PIL: il saldo con l'estero è quasi in pareggio. Le scorte (14,5%) sono insolitamente alte e includono il greggio invenduto.</p>
+    </div>
+  </div>
+
+  <h3 class="sub">I flussi: come girano i soldi del petrolio</h3>
+  <p class="note" style="max-width:75ch;margin-bottom:10px">Il petrolio è una parte piccola del PIL ma quasi tutta la valuta estera del Paese. Il percorso prima della guerra e oggi:</p>
+  <div class="flow">
+    <div class="fcol">
+      <div class="fnode oil"><b>Greggio e condensati</b><span>~1,5 mb/g esportati nel 2025, il 57% di tutto l'export (Banca Mondiale, 2023/24)</span></div>
+      <div class="fnode"><b>Export non petrolifero</b><span>petrolchimica, metalli, GPL, prodotti agricoli verso Turchia, Iraq, EAU, Pakistan</span></div>
+    </div>
+    <div class="farrow" aria-hidden="true">→</div>
+    <div class="fcol">
+      <div class="fnode"><b>Cina</b><span>80-90% del greggio iraniano, comprato da raffinerie indipendenti con sconti di 6-8 $ al barile, pagato in yuan spendibili quasi solo in beni cinesi (Bruegel)</span></div>
+      <div class="fnode"><b>Altri clienti</b><span>Turchia 20%, Pakistan 11%, EAU 10% dell'export totale (2024)</span></div>
+    </div>
+    <div class="farrow" aria-hidden="true">→</div>
+    <div class="fcol">
+      <div class="fnode"><b>NIOC e Banca centrale</b><span>incassano la valuta e la convertono in rial</span></div>
+    </div>
+    <div class="farrow" aria-hidden="true">→</div>
+    <div class="fcol">
+      <div class="fnode"><b>Bilancio dello Stato</b><span>stipendi pubblici, sussidi a benzina e pane, cambio agevolato per i beni essenziali</span></div>
+      <div class="fnode ir"><b>Pasdaran e apparato di sicurezza</b><span>secondo stime riportate da Wikipedia, metà dei ricavi di petrolio e gas del 2025 <span class="unc">stima non verificabile</span></span></div>
+      <div class="fnode"><b>Fondo nazionale di sviluppo</b><span>una quota fissa dei ricavi petroliferi, la riserva per i tempi difficili</span></div>
+    </div>
+  </div>
+  <div class="flow-now">
+    <b>Oggi:</b> il blocco navale USA dal 14 luglio ha fermato la prima freccia. Dal 25 agosto nessuna petroliera carica a Kharg; restano circa 250 mila barili al giorno via terra (Kpler, inizio ottobre). Si perdono 3-6 miliardi di dollari al mese e almeno 25 miliardi di greggio sono bloccati (CENTCOM, 22 ottobre). Senza valuta la Banca centrale non riesce a difendere il rial: ha immesso fino a 2 miliardi di dollari, poi il cambio ha ceduto di nuovo.
+  </div>
+
+  <h3 class="sub">Come è cambiata la situazione dall'inizio della crisi</h3>
+  <div class="eco-two">
+    <div class="chartbox">
+      <h4>Export di greggio iraniano (milioni di barili al giorno)</h4>
+      <svg id="eco-exp" viewBox="0 0 440 260" role="img" aria-label="Export di greggio iraniano dal 2025 a ottobre 2026"></svg>
+      <p class="note">2025: media stimata. Giugno-agosto 2026: importazioni cinesi di greggio iraniano (Kpler via USCC), quasi tutto l'export. Settembre-ottobre: solo via terra, ~0,25 (Kpler).</p>
+    </div>
+    <div class="chartbox">
+      <h4>Rial al mercato libero (milioni per 1 dollaro)</h4>
+      <svg id="eco-rial" viewBox="0 0 440 260" role="img" aria-label="Cambio del rial dal 2025 a ottobre 2026"></svg>
+      <p class="note">Valori indicativi del mercato libero (Wikipedia, Statistics of the World, Iran International). Il Tesoro USA stima un −25% tra il 24 agosto e il 31 ottobre.</p>
+    </div>
+    <div class="chartbox">
+      <h4>Inflazione annua (%)</h4>
+      <svg id="eco-inf" viewBox="0 0 440 260" role="img" aria-label="Inflazione in Iran dal 2023 al luglio 2026"></svg>
+      <p class="note">Variazione su 12 mesi. 2023/24: media (Banca Mondiale). Gennaio 2026: dato ufficiale. Marzo 2026: Banca centrale. Luglio 2026: Centro statistico iraniano (via Iran International). Previsione FMI per il 2026: 69% di media annua.</p>
+    </div>
+    <div class="chartbox">
+      <h4>Crescita del PIL reale (%)</h4>
+      <svg id="eco-gr" viewBox="0 0 440 260" role="img" aria-label="Crescita del PIL reale dell'Iran dal 2024 al 2027"></svg>
+      <p class="note">FMI, ottobre 2026. Ad aprile l'FMI prevedeva −6,1% per il 2026; a gennaio, prima della guerra, +1,1%.</p>
+    </div>
+  </div>
+
+  <h3 class="sub">Le fasi</h3>
+  <ol class="eco-phases">
+    <li><b>2025: un'economia già in affanno.</b> Sanzioni, inflazione sopra il 40% e la guerra dei dodici giorni di giugno 2025. L'export di greggio regge (circa 1,5 mb/g, quasi tutto verso la Cina) ma con sconti crescenti. Il rial passa da circa 1 a 1,4 milioni per dollaro. Crescita intorno allo zero.</li>
+    <li><b>28 febbraio - giugno 2026: la guerra.</b> Raid USA e israeliani su siti nucleari, energia e leadership. Il 4 marzo l'Iran chiude Hormuz. Il governo stima danni per 270 miliardi di dollari <span class="unc">stima del governo</span>. Ad aprile il rial perde il 15% in due giorni (circa 1,8 milioni); a marzo l'inflazione su 12 mesi è al 73% e il cibo oltre il 100%. Un milione di posti di lavoro persi secondo il ministero del Lavoro, due milioni secondo stime esterne.</li>
+    <li><b>Giugno - luglio: la tregua di Islamabad.</b> Il memorandum di giugno dà un po' di respiro, ma l'export resta sotto 0,8-0,9 mb/g e l'inflazione sale ancora (oltre l'88% a luglio, cibo oltre il 130%).</li>
+    <li><b>Dal 14 luglio: il blocco navale.</b> La marina USA blocca i porti iraniani. Ad agosto l'export verso la Cina scende a circa 0,5 mb/g; dal 25 agosto si ferma del tutto via mare. Settembre è il primo mese senza carichi dal 1979. Pechino sostituisce il greggio iraniano con quello iracheno, qatarino e russo.</li>
+    <li><b>Ottobre: l'asfissia finanziaria.</b> Rial a circa 2,7 milioni, entrate petrolifere verso lo zero entro metà dicembre (Kpler), FMI a −7,6% per il 2026. È la ragione principale per cui Teheran tratta: lo sblocco dei fondi congelati e la fine del blocco valgono più di qualunque altra concessione.</li>
+  </ol>
+
+  <div class="box eco-take">
+    <h3>Cosa significa per il negoziato e per il petrolio</h3>
+    <p>L'economia iraniana regge ancora grazie al mercato interno, all'agricoltura e ai servizi, che sono la gran parte del PIL. Ma senza petrolio non ha dollari: non può importare, non può difendere il rial e l'inflazione corre. Il tempo gioca contro Teheran, e questo rende più probabile un'intesa parziale (Hormuz e fondi prima, nucleare dopo). Un accordo che riapre Hormuz e i carichi a Kharg aggiungerebbe offerta e sarebbe ribassista per il Brent; un nuovo round di raid andrebbe nella direzione opposta. Non è consulenza finanziaria.</p>
+  </div>
+
+  <p class="note" style="margin-top:14px">Fonti: FMI World Economic Outlook (aprile e ottobre 2026); Banca Mondiale, Iran Economic Monitor (primavera 2024); Statista; CIA World Factbook; Kpler e Vortexa via Iran International e USCC; CENTCOM; Bruegel; Tesoro USA; Wikipedia, "Economic impact of the 2026 Iran war" e "Economy of Iran"; Statistics of the World. Iran International è una testata di opposizione: i suoi dati sono attribuiti a fonti terze. Non è consulenza finanziaria.</p>
+</div></section>
+
 <!-- PREZZO -->
 <section class="page" id="prezzo" hidden><div class="wrap">
   <h2>Quanto dovrebbe costare il petrolio?</h2>
@@ -743,7 +868,7 @@ function fmt(v,d){return (d===undefined?v.toFixed(2):v.toFixed(d)).replace(".","
 function sg(v,d){return (v>=0?"+":"−")+fmt(Math.abs(v),d)}
 
 /* ---------- pagine ---------- */
-var PAGES=["panoramica","notizie","personaggi","proposte","mappa","prezzo","fonti"];
+var PAGES=["panoramica","notizie","personaggi","proposte","mappa","economia","prezzo","fonti"];
 function show(){
   var h=(location.hash||"").slice(1);if(PAGES.indexOf(h)<0)h="panoramica";
   PAGES.forEach(function(p){document.getElementById(p).hidden=(p!==h)});
@@ -1147,6 +1272,58 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
 })();
 
 </script>
+<script>
+/* Pagina Economia: grafici semplici in SVG */
+(function(){
+  var NS="http://www.w3.org/2000/svg";
+  function el(n,a,p){var e=document.createElementNS(NS,n);for(var k in a){if((k==="fill"||k==="stroke")&&/^var\(/.test(a[k]))e.style[k]=a[k];else e.setAttribute(k,a[k])}if(p)p.appendChild(e);return e}
+  function txt(s,x,y,t,a,p,cls){var e=el("text",{x:x,y:y,"text-anchor":a||"middle"},p);e.textContent=t;if(cls)e.setAttribute("class",cls);return e}
+  function f(v,d){return v.toFixed(d).replace(".",",")}
+  /* barre verticali */
+  function bars(id,data,o){
+    var s=document.getElementById(id);if(!s)return;var vb=s.viewBox.baseVal,W=vb.width,H=vb.height;
+    var L=o.left||40,R=10,T=24,B=30,max=o.max,min=o.min||0;
+    function y(v){return T+(H-T-B)*(max-v)/(max-min)}
+    o.ticks.forEach(function(t){el("line",{"class":"gl",x1:L,x2:W-R,y1:y(t),y2:y(t)},s);txt(s,L-6,y(t)+4,o.tf?o.tf(t):t,"end",s)});
+    el("line",{"class":"ax",x1:L,x2:W-R,y1:y(0),y2:y(0)},s);
+    var bw=(W-L-R)/data.length;
+    data.forEach(function(d,i){
+      var x=L+i*bw+bw*0.18,w=bw*0.64,y0=y(Math.max(0,d.v)),h=Math.abs(y(d.v)-y(0));
+      var r=el("rect",{x:x,y:y0,width:w,height:Math.max(h,d.v===0?0:1),fill:d.c||"var(--neutral)"},s);
+      if(d.dash){r.style.fill="none";r.style.stroke=d.c||"var(--neutral)";r.setAttribute("stroke-width","2");r.setAttribute("stroke-dasharray","5 4")}
+      var lv=d.v<0?y(d.v)+14:y0-6;txt(s,x+w/2,lv,d.l,"middle",s).style.fill="var(--ink)";
+      txt(s,x+w/2,H-10,d.x,"middle",s);
+    });
+  }
+  /* linea con punti */
+  function line(id,data,o){
+    var s=document.getElementById(id);if(!s)return;var vb=s.viewBox.baseVal,W=vb.width,H=vb.height;
+    var L=o.left||40,R=18,T=20,B=30,max=o.max;
+    function y(v){return T+(H-T-B)*(max-v)/max}
+    o.ticks.forEach(function(t){el("line",{"class":"gl",x1:L,x2:W-R,y1:y(t),y2:y(t)},s);txt(s,L-6,y(t)+4,o.tf?o.tf(t):t,"end",s)});
+    var step=(W-L-R-10)/(data.length-1);function x(i){return L+5+i*step}
+    el("path",{d:"M"+data.map(function(d,i){return x(i).toFixed(1)+","+y(d.v).toFixed(1)}).join("L"),fill:"none",stroke:o.c,"stroke-width":"2.5"},s);
+    data.forEach(function(d,i){el("circle",{cx:x(i),cy:y(d.v),r:"4",fill:o.c},s);
+      var t=txt(s,x(i),y(d.v)-9,d.l,"middle",s);t.style.fill="var(--ink)";
+      var lab=txt(s,x(i),H-10,d.x,"middle",s);});
+  }
+  bars("eco-gdp",[{x:"2024",v:416.7,l:"417"},{x:"2025",v:371.1,l:"371"},{x:"2026 stima",v:311.9,l:"312",c:"var(--ir)"},{x:"2027 proiez.",v:317.4,l:"317",dash:true}],{max:450,ticks:[0,100,200,300,400],left:44});
+  bars("eco-gr",[{x:"2024",v:3.7,l:"+3,7"},{x:"2025",v:-0.9,l:"−0,9"},{x:"2026",v:-7.6,l:"−7,6",c:"var(--ir)"},{x:"2027",v:3.6,l:"+3,6",dash:true}],{max:6,min:-10,ticks:[-8,-4,0,4],left:34});
+  bars("eco-exp",[{x:"2025",v:1.5,l:"~1,5"},{x:"giu 26",v:0.785,l:"0,79"},{x:"lug",v:0.823,l:"0,82"},{x:"ago",v:0.534,l:"0,53"},{x:"set",v:0.25,l:"~0,25",c:"var(--ir)"},{x:"ott",v:0.25,l:"~0,25",c:"var(--ir)"}],{max:1.7,ticks:[0,0.5,1,1.5],tf:function(t){return f(t,1)},left:34});
+  line("eco-rial",[{x:"inizio 25",v:1.0,l:"~1,0"},{x:"dic 25",v:1.4,l:"~1,4"},{x:"apr 26",v:1.78,l:"~1,8"},{x:"ott 26",v:2.7,l:"~2,7"}],{max:3,ticks:[0,1,2,3],c:"var(--ir)",left:30});
+  line("eco-inf",[{x:"2023/24",v:40.7,l:"41"},{x:"gen 26",v:44.6,l:"45"},{x:"mar 26",v:73.5,l:"74"},{x:"lug 26",v:88,l:"88+"}],{max:100,ticks:[0,25,50,75,100],c:"var(--ir)",left:30});
+  /* barre impilate */
+  function stack(id,lid,parts){
+    var b=document.getElementById(id),l=document.getElementById(lid);if(!b)return;
+    var tot=parts.reduce(function(a,p){return a+Math.max(p.v,0)},0);
+    parts.forEach(function(p){if(p.v<=0)return;var s=document.createElement("span");s.style.width=(100*p.v/tot)+"%";s.style.background=p.c;s.textContent=p.v>=10?f(p.v,0)+"%":"";b.appendChild(s)});
+    parts.forEach(function(p){var li=document.createElement("li");var i=document.createElement("i");i.style.background=p.v>0?p.c:"transparent";if(p.v<=0)i.style.border="1px dashed var(--muted)";li.appendChild(i);var t=document.createElement("span");t.innerHTML="<b>"+(p.v>0?"":"−")+f(Math.abs(p.v),p.d||0)+"%</b> "+p.n;li.appendChild(t);l.appendChild(li)});
+  }
+  stack("eco-sup","eco-sup-l",[{n:"Servizi (commercio, trasporti, pubblica amministrazione, finanza, casa)",v:52,c:"var(--us)"},{n:"Industria, miniere e costruzioni, senza petrolio",v:26.6,c:"var(--neutral)"},{n:"Agricoltura",v:12.8,d:1,c:"var(--ok)"},{n:"Petrolio e gas (prezzi costanti)",v:8.6,d:1,c:"var(--oil)"}]);
+  stack("eco-dem","eco-dem-l",[{n:"Consumi delle famiglie",v:49.7,d:1,c:"var(--us)"},{n:"Investimenti fissi",v:20.6,d:1,c:"var(--neutral)"},{n:"Variazione delle scorte",v:14.5,d:1,c:"var(--med)"},{n:"Spesa pubblica",v:14,c:"var(--nuc)"},{n:"Esportazioni nette (export 26%, import −24,9%)",v:1.1,d:1,c:"var(--oil)"}]);
+})();
+</script>
+
 
 </body>
 </html>
