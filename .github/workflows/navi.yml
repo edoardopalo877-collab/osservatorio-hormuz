@@ -1,6 +1,10 @@
 name: Navi AIS
 on:
   workflow_dispatch:
+    inputs:
+      box: {description: "Bounding box JSON (prova)", required: false, default: ""}
+      durata: {description: "Secondi di ascolto", required: false, default: "540"}
+      prova: {description: "1 = solo prova, non pubblica", required: false, default: "0"}
   schedule:
     - cron: "*/15 * * * *"
 permissions:
@@ -24,12 +28,14 @@ jobs:
       - name: Raccogli posizioni (9 minuti)
         env:
           AISSTREAM_KEY: ${{ secrets.AISSTREAM_KEY }}
-          DURATA: "540"
+          DURATA: ${{ github.event.inputs.durata || '540' }}
+          BOX: ${{ github.event.inputs.box }}
+          DEBUG: ${{ github.event.inputs.prova == '1' && '1' || '' }}
         run: |
           if [ -z "$AISSTREAM_KEY" ]; then echo "Segreto AISSTREAM_KEY non ancora impostato: salto."; echo "SALTA=1" >> "$GITHUB_ENV"; exit 0; fi
           python codice/navi/raccogli.py dati/navi.json
       - name: Pubblica sul ramo dati (un solo commit, senza storico)
-        if: env.SALTA != '1'
+        if: env.SALTA != '1' && github.event.inputs.prova != '1'
         run: |
           cd dati
           rm -rf .git

@@ -10,6 +10,7 @@ DURATA = int(os.environ.get("DURATA", "540"))      # secondi di ascolto per giro
 TIENI_ORE = 12                                      # navi non viste da piu' di 12 ore escono
 PUNTI_TRACCIA = 8
 BOX = [[[11.0, 32.0], [31.5, 66.0]]]               # [lat,lon] SO -> NE: Mar Rosso, Golfo, Golfo di Oman, Mar Arabico
+if os.environ.get("BOX"): BOX = json.loads(os.environ["BOX"])
 
 def ora():
     return datetime.now(timezone.utc)
@@ -30,12 +31,14 @@ async def ascolta(navi):
         try:
             async with websockets.connect("wss://stream.aisstream.io/v0/stream", open_timeout=30, ping_interval=20) as ws:
                 await ws.send(json.dumps(sub))
+                print("connesso, sottoscrizione inviata, box", BOX)
                 while time.time() < fine:
                     try:
                         raw = await asyncio.wait_for(ws.recv(), timeout=max(1, fine - time.time()))
                     except asyncio.TimeoutError:
                         break
                     m = json.loads(raw)
+                    if n < 3 and os.environ.get("DEBUG"): print("msg:", str(m)[:300])
                     if "error" in m:
                         print("errore aisstream:", m["error"]); return n
                     md = m.get("MetaData", {}); mmsi = str(md.get("MMSI", ""))
