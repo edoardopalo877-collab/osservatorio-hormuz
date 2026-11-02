@@ -9,7 +9,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else "navi.json"
 DURATA = int(os.environ.get("DURATA", "540"))      # secondi di ascolto per giro
 TIENI_ORE = 12                                      # navi non viste da piu' di 12 ore escono
 PUNTI_TRACCIA = 8
-BOX = [[[11.0, 32.0], [31.5, 66.0]]]               # [lat,lon] SO -> NE: Mar Rosso, Golfo, Golfo di Oman, Mar Arabico
+BOX = [[[11.0, 32.0], [31.5, 66.0]], [[30.0, 25.0], [38.5, 37.0]]]  # [lat,lon] SO -> NE: Golfo/Mar Rosso/Mar Arabico + Mediterraneo orientale (Ceyhan, Suez nord)
 if os.environ.get("BOX"): BOX = json.loads(os.environ["BOX"])
 
 def ora():
