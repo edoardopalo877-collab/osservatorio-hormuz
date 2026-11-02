@@ -238,6 +238,9 @@ svg#map{display:block;width:100%;height:auto;background:var(--sea);aspect-ratio:
 .flow-tab-wrap{overflow-x:auto}
 .ais-box{position:relative;border:1px solid var(--neutral-soft);border-radius:8px;overflow:hidden;background:var(--neutral-soft);margin-top:10px}
 .ais-box iframe{display:block;width:100%;height:480px;border:0}
+.ais-big iframe{height:max(480px,72vh)}
+.ais-tools{position:static;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 0}
+.ais-nm{font-size:13.5px;display:inline-flex;gap:5px;align-items:center;margin-left:6px}
 .ais-ph{padding:28px 16px;text-align:center;font-size:14px}
 .ais-ph button{font:inherit;font-weight:700;padding:8px 14px;border-radius:6px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
 .ais-links{font-size:13.5px;margin:8px 0 0}
@@ -384,7 +387,7 @@ td.est{font-style:italic;color:var(--muted)}
 </div></header>
 
 <nav class="sec" aria-label="Pagine"><div class="wrap">
-  <a href="#panoramica">Panoramica</a><a href="#notizie">Notizie</a><a href="#personaggi">Personaggi</a><a href="#proposte">Proposte</a><a href="#mappa">Mappa</a><button type="button" class="ddbtn" id="dd-iran" aria-expanded="false" aria-controls="dd-menu">Iran ▾</button><a href="#prezzo">Prezzo giusto?</a><a href="#fonti">Fonti e metodo</a>
+  <a href="#panoramica">Panoramica</a><a href="#notizie">Notizie</a><a href="#personaggi">Personaggi</a><a href="#proposte">Proposte</a><a href="#mappa">Mappa</a><a href="#navi">Navi</a><button type="button" class="ddbtn" id="dd-iran" aria-expanded="false" aria-controls="dd-menu">Iran ▾</button><a href="#prezzo">Prezzo giusto?</a><a href="#fonti">Fonti e metodo</a>
 </div>
 <div class="ddmenu" id="dd-menu" hidden><a href="#economia">Economia</a><a href="#governo">Governo</a></div></nav>
 
@@ -601,7 +604,7 @@ td.est{font-style:italic;color:var(--muted)}
 <!-- MAPPA -->
 <section class="page" id="mappa" hidden><div class="wrap">
   <h2>La mappa</h2>
-  <p class="intro">Tocca un simbolo o una freccia dei flussi per leggere cosa c'è e perché conta. Usa "Golfo e Hormuz" per ingrandire la zona più affollata. Sotto la mappa: <a href="#mappa" onclick="document.getElementById('flussi').scrollIntoView();return false">i flussi di petrolio</a> e <a href="#mappa" onclick="document.getElementById('navi').scrollIntoView();return false">le navi in tempo reale</a>.</p>
+  <p class="intro">Tocca un simbolo o una freccia dei flussi per leggere cosa c'è e perché conta. Usa "Golfo e Hormuz" per ingrandire la zona più affollata. Sotto la mappa: <a href="#mappa" onclick="document.getElementById('flussi').scrollIntoView();return false">i flussi di petrolio</a> e la pagina <a href="#navi">Navi in tempo reale</a>.</p>
 <div class="mapgrid">
     <div class="mapbox">
       <div class="maptools" role="group" aria-label="Zoom">
@@ -686,13 +689,29 @@ td.est{font-style:italic;color:var(--muted)}
   <p class="note" id="fl-agg"></p>
   <div class="flow-tab-wrap"><table class="flow-tab" id="fl-tab"><thead><tr><th>Flusso</th><th>Oggi</th><th>Prima della guerra</th><th>Fonte</th></tr></thead><tbody></tbody></table></div>
 
-  <h3 class="sub" id="navi">Navi in tempo reale</h3>
-  <p class="intro" style="margin-bottom:8px">Le posizioni AIS delle navi tra Golfo, Hormuz e Golfo di Oman, aggiornate di continuo da VesselFinder. Tocca una nave per nome, tipo e rotta.</p>
+
+</div></section>
+
+<!-- NAVI -->
+<section class="page" id="navi" hidden><div class="wrap">
+  <h2>Navi in tempo reale</h2>
+  <p class="intro" style="margin-bottom:8px">Tutte le navi con il transponder AIS acceso, dal Golfo al Mar Rosso, aggiornate di continuo da VesselFinder. Trascina per spostarti, usa la rotellina o due dita per lo zoom, tocca una nave per nome, tipo, bandiera e rotta. I pulsanti portano sulle zone calde.</p>
+  <div class="maptools ais-tools" role="group" aria-label="Zone">
+    <button type="button" data-v="5,24.5,49" aria-pressed="false">Tutta la regione</button>
+    <button type="button" data-v="8,26.4,56.3" aria-pressed="true">Stretto di Hormuz</button>
+    <button type="button" data-v="6,27.2,51.5" aria-pressed="false">Golfo Persico</button>
+    <button type="button" data-v="7,24.8,57.8" aria-pressed="false">Fujairah e Golfo di Oman</button>
+    <button type="button" data-v="7,24.1,37.6" aria-pressed="false">Yanbu</button>
+    <button type="button" data-v="7,13.2,43.4" aria-pressed="false">Bab el-Mandeb</button>
+    <button type="button" data-v="7,29.6,32.7" aria-pressed="false">Suez</button>
+    <label class="ais-nm"><input type="checkbox" id="ais-names"> Nomi delle navi</label>
+  </div>
+  <div class="ais-box ais-big" id="ais-box"><div class="ais-ph"><p style="margin:0 0 10px">Caricamento della mappa delle navi (servizio esterno VesselFinder)…</p><button type="button" id="ais-load">Carica la mappa delle navi</button></div></div>
+  <h3 class="sub">Quante navi passano</h3>
   <div class="tiles" id="ais-tiles"></div>
-  <div class="ais-box" id="ais-box"><div class="ais-ph"><p style="margin:0 0 10px">La mappa delle navi è un servizio esterno (VesselFinder) e si carica solo se lo chiedi.</p><button type="button" id="ais-load">Carica la mappa delle navi</button></div></div>
   <p class="ais-links">Se la mappa non si carica: <a href="https://www.vesselfinder.com/?p=26.3,55.5,7" target="_blank" rel="noopener">VesselFinder</a> · <a href="https://www.marinetraffic.com/en/ais/home/centerx:55.5/centery:26.3/zoom:7" target="_blank" rel="noopener">MarineTraffic</a> · <a href="https://hormuz.now/" target="_blank" rel="noopener">hormuz.now</a> (conteggio dei transiti)</p>
   <p class="note" style="margin-top:8px"><b>Attenzione:</b> durante la guerra molte petroliere spengono il transponder AIS o hanno il GPS disturbato, quindi la mappa mostra solo una parte delle navi. Le petroliere iraniane viaggiano quasi tutte "al buio". I conteggi qui sopra sono quindi un minimo, non il totale.</p>
-
+  <p class="note" style="margin-top:8px">I flussi di petrolio (quanti barili passano da Hormuz, Yanbu, Fujairah) sono sulla pagina <a href="#mappa">Mappa</a>.</p>
 </div></section>
 
 <!-- ECONOMIA -->
@@ -1048,12 +1067,13 @@ function fmt(v,d){return (d===undefined?v.toFixed(2):v.toFixed(d)).replace(".","
 function sg(v,d){return (v>=0?"+":"−")+fmt(Math.abs(v),d)}
 
 /* ---------- pagine ---------- */
-var PAGES=["panoramica","notizie","personaggi","proposte","mappa","economia","governo","prezzo","fonti"];
+var PAGES=["panoramica","notizie","personaggi","proposte","mappa","navi","economia","governo","prezzo","fonti"];
 function show(){
   var h=(location.hash||"").slice(1);if(PAGES.indexOf(h)<0)h="panoramica";
   PAGES.forEach(function(p){document.getElementById(p).hidden=(p!==h)});
   document.querySelectorAll("nav.sec a").forEach(function(a){if(a.getAttribute("href")==="#"+h)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
   if(h==="mappa")window.dispatchEvent(new Event("resize"));
+  if(h==="navi"&&window.loadAIS)window.loadAIS();
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange",show);
@@ -1428,13 +1448,18 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
     var T=[["Petroliere passate da Hormuz","~"+String(A.pd).replace(".",",")+" al giorno",A.t7+" negli ultimi 7 giorni, contro ~"+String(A.pre).replace(".",",")+" al giorno prima della crisi"],["Petroliere visibili nella regione",String(A.reg),"con il transponder acceso"],["Navi in attesa fuori dallo stretto","~"+A.att,"stima JMIC del 25 ott"]];
     T.forEach(function(x){var d=document.createElement("div");d.className="tile";d.innerHTML='<div class="k"></div><div class="v"></div><div class="s"></div>';d.children[0].textContent=x[0];d.children[1].textContent=x[1];d.children[2].textContent=x[2];tl.appendChild(d)});
     var n=document.createElement("p");n.className="note";n.style.gridColumn="1/-1";n.textContent="Conteggi del "+A.d+". Fonte: "+A.src+".";tl.appendChild(n);
-    document.getElementById("ais-load").addEventListener("click",function(){
+    var aisV="8,26.4,56.3",aisF=null;
+    function aisSrc(){var v=aisV.split(","),nm=document.getElementById("ais-names").checked;var h=Math.max(480,Math.round(window.innerHeight*0.72));
+      return "https://www.vesselfinder.com/aismap?zoom="+v[0]+"&lat="+v[1]+"&lon="+v[2]+"&width=100%25&height="+h+"&names="+(nm?"true":"false")+"&mmsi=0&track=false&fleet=false&fleet_name=&fleet_hide_old_positions=false&clicktoact=false&store_pos=false&ra="}
+    window.loadAIS=function(){
       var box=document.getElementById("ais-box");
-      var f=document.createElement("iframe");
-      f.title="Mappa delle navi in tempo reale (VesselFinder)";f.loading="lazy";
-      f.src="https://www.vesselfinder.com/aismap?zoom=7&lat=26.3&lon=55.4&width=100%25&height=480&names=false&mmsi=0&track=false&fleet=false&fleet_name=&fleet_hide_old_positions=false&clicktoact=false&store_pos=true&ra=";
-      box.innerHTML="";box.appendChild(f);
-    });
+      if(!aisF){aisF=document.createElement("iframe");aisF.title="Mappa delle navi in tempo reale (VesselFinder)";aisF.setAttribute("allowfullscreen","");box.innerHTML="";box.appendChild(aisF)}
+      aisF.src=aisSrc();
+    };
+    document.getElementById("ais-load").addEventListener("click",window.loadAIS);
+    document.querySelectorAll(".ais-tools button").forEach(function(bt){bt.addEventListener("click",function(){aisV=bt.dataset.v;document.querySelectorAll(".ais-tools button").forEach(function(x){x.setAttribute("aria-pressed",x===bt?"true":"false")});window.loadAIS()})});
+    document.getElementById("ais-names").addEventListener("change",function(){if(aisF)window.loadAIS()});
+    if((location.hash||"").slice(1)==="navi")window.loadAIS();
   })();
   // etichette paesi e mari
   var CL=[["Iran",55.5,32.4,1],["Iraq",43.6,33.2,1],["Arabia Saudita",44.2,21.6,1],["Yemen",47.5,15.9,1],["Oman",56.6,20.8,1],["EAU",54.2,23.4,2],["Qatar",51.2,24.55,3],["Kuwait",47.5,29.6,3],["Giordania",36.9,30.4,2],["Siria",38.5,35.2,2],["Egitto",33.6,27.2,2],["Israele",34.6,30.9,2],["Turchia",37,38.8,2],["Afghanistan",62.3,34.5,2],["Pakistan",62.3,27.3,2],["Sudan",35.5,17.5,2],["Eritrea",38.3,15.2,3]];
