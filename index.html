@@ -238,9 +238,22 @@ svg#map{display:block;width:100%;height:auto;background:var(--sea);aspect-ratio:
 .flow-tab-wrap{overflow-x:auto}
 .ais-box{position:relative;border:1px solid var(--neutral-soft);border-radius:8px;overflow:hidden;background:var(--neutral-soft);margin-top:10px}
 .ais-box iframe{display:block;width:100%;height:480px;border:0}
-.ais-big iframe{height:max(480px,72vh)}
-.ais-tools{position:static;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 0}
-.ais-nm{font-size:13.5px;display:inline-flex;gap:5px;align-items:center;margin-left:6px}
+.nv-bar{display:flex;flex-direction:column;gap:6px}
+.nv-zone{border:0;padding:0}
+.nv-filt{display:flex;flex-wrap:wrap;gap:6px}
+.nv-filt label{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;padding:4px 9px;border:1px solid var(--rule);border-radius:999px;background:var(--paper);cursor:pointer}
+.nv-filt i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.nv-filt b{font-variant-numeric:tabular-nums}
+.nv-stato{font-size:13.5px;color:var(--muted);margin:8px 0 6px}
+.nv-wrap{position:relative}
+#nv-map{height:max(460px,70vh);border:1px solid var(--rule);border-radius:8px;background:var(--neutral-soft);z-index:0}
+.nv-info{position:absolute;right:10px;top:10px;z-index:500;width:min(300px,calc(100% - 20px));background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;font-size:13.5px;box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.nv-info h4{margin:0 0 6px;font-size:16px;padding-right:24px}
+.nv-info dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0}
+.nv-info dt{color:var(--muted)}
+.nv-info dd{margin:0}
+.nv-info .x{position:absolute;right:8px;top:6px;all:unset;cursor:pointer;font-size:20px;line-height:1;position:absolute;right:10px;top:8px}
+.leaflet-container{font:inherit}
 .ais-ph{padding:28px 16px;text-align:center;font-size:14px}
 .ais-ph button{font:inherit;font-weight:700;padding:8px 14px;border-radius:6px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
 .ais-links{font-size:13.5px;margin:8px 0 0}
@@ -695,23 +708,25 @@ td.est{font-style:italic;color:var(--muted)}
 <!-- NAVI -->
 <section class="page" id="navi" hidden><div class="wrap">
   <h2>Navi in tempo reale</h2>
-  <p class="intro" style="margin-bottom:8px">Tutte le navi con il transponder AIS acceso, dal Golfo al Mar Rosso, aggiornate di continuo da VesselFinder. Trascina per spostarti, usa la rotellina o due dita per lo zoom, tocca una nave per nome, tipo, bandiera e rotta. I pulsanti portano sulle zone calde.</p>
-  <div class="maptools ais-tools" role="group" aria-label="Zone">
-    <button type="button" data-v="5,24.5,49" aria-pressed="false">Tutta la regione</button>
-    <button type="button" data-v="8,26.4,56.3" aria-pressed="true">Stretto di Hormuz</button>
-    <button type="button" data-v="6,27.2,51.5" aria-pressed="false">Golfo Persico</button>
-    <button type="button" data-v="7,24.8,57.8" aria-pressed="false">Fujairah e Golfo di Oman</button>
-    <button type="button" data-v="7,24.1,37.6" aria-pressed="false">Yanbu</button>
-    <button type="button" data-v="7,13.2,43.4" aria-pressed="false">Bab el-Mandeb</button>
-    <button type="button" data-v="7,29.6,32.7" aria-pressed="false">Suez</button>
-    <label class="ais-nm"><input type="checkbox" id="ais-names"> Nomi delle navi</label>
+  <p class="intro" style="margin-bottom:8px">Le navi che trasmettono la loro posizione (AIS) tra Mar Rosso, Golfo Persico, Golfo di Oman e Mar Arabico. Raccogliamo noi i dati ogni 15 minuti e li disegniamo qui. Trascina per spostarti, usa la rotellina o due dita per lo zoom, tocca una nave per i dettagli.</p>
+  <div class="nv-bar">
+    <div class="maptools nv-zone" role="group" aria-label="Zone">
+      <button type="button" data-v="24.5,49,5" aria-pressed="false">Tutta la regione</button>
+      <button type="button" data-v="26.3,56.2,8" aria-pressed="true">Stretto di Hormuz</button>
+      <button type="button" data-v="27.2,51.5,7" aria-pressed="false">Golfo Persico</button>
+      <button type="button" data-v="25,57.2,8" aria-pressed="false">Fujairah</button>
+      <button type="button" data-v="24.1,37.8,8" aria-pressed="false">Yanbu</button>
+      <button type="button" data-v="13,43.4,8" aria-pressed="false">Bab el-Mandeb</button>
+      <button type="button" data-v="29.8,32.6,8" aria-pressed="false">Suez</button>
+    </div>
+    <div class="nv-filt" id="nv-filt" role="group" aria-label="Tipi di nave"></div>
   </div>
-  <div class="ais-box ais-big" id="ais-box"><div class="ais-ph"><p style="margin:0 0 10px">Caricamento della mappa delle navi (servizio esterno VesselFinder)…</p><button type="button" id="ais-load">Carica la mappa delle navi</button></div></div>
+  <p class="nv-stato" id="nv-stato">Caricamento delle posizioni…</p>
+  <div class="nv-wrap"><div id="nv-map" role="application" aria-label="Mappa navigabile delle navi"></div><div class="nv-info" id="nv-info" hidden></div></div>
   <h3 class="sub">Quante navi passano</h3>
   <div class="tiles" id="ais-tiles"></div>
-  <p class="ais-links">Se la mappa non si carica: <a href="https://www.vesselfinder.com/?p=26.3,55.5,7" target="_blank" rel="noopener">VesselFinder</a> · <a href="https://www.marinetraffic.com/en/ais/home/centerx:55.5/centery:26.3/zoom:7" target="_blank" rel="noopener">MarineTraffic</a> · <a href="https://hormuz.now/" target="_blank" rel="noopener">hormuz.now</a> (conteggio dei transiti)</p>
-  <p class="note" style="margin-top:8px"><b>Attenzione:</b> durante la guerra molte petroliere spengono il transponder AIS o hanno il GPS disturbato, quindi la mappa mostra solo una parte delle navi. Le petroliere iraniane viaggiano quasi tutte "al buio". I conteggi qui sopra sono quindi un minimo, non il totale.</p>
-  <p class="note" style="margin-top:8px">I flussi di petrolio (quanti barili passano da Hormuz, Yanbu, Fujairah) sono sulla pagina <a href="#mappa">Mappa</a>.</p>
+  <p class="note" style="margin-top:10px"><b>Cosa non si vede:</b> durante la guerra molte petroliere spengono il transponder AIS o hanno il GPS disturbato, e le petroliere iraniane viaggiano quasi tutte "al buio". La copertura dipende anche dalle antenne a terra: lontano dalla costa i segnali arrivano meno. La mappa è quindi un minimo, non il totale delle navi in mare.</p>
+  <p class="note" style="margin-top:8px">Fonte delle posizioni: aisstream.io (rete di ricevitori AIS). Mappa di base © OpenStreetMap. I flussi di petrolio (quanti barili passano da Hormuz, Yanbu, Fujairah) sono sulla pagina <a href="#mappa">Mappa</a>.</p>
 </div></section>
 
 <!-- ECONOMIA -->
@@ -1448,18 +1463,6 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
     var T=[["Petroliere passate da Hormuz","~"+String(A.pd).replace(".",",")+" al giorno",A.t7+" negli ultimi 7 giorni, contro ~"+String(A.pre).replace(".",",")+" al giorno prima della crisi"],["Petroliere visibili nella regione",String(A.reg),"con il transponder acceso"],["Navi in attesa fuori dallo stretto","~"+A.att,"stima JMIC del 25 ott"]];
     T.forEach(function(x){var d=document.createElement("div");d.className="tile";d.innerHTML='<div class="k"></div><div class="v"></div><div class="s"></div>';d.children[0].textContent=x[0];d.children[1].textContent=x[1];d.children[2].textContent=x[2];tl.appendChild(d)});
     var n=document.createElement("p");n.className="note";n.style.gridColumn="1/-1";n.textContent="Conteggi del "+A.d+". Fonte: "+A.src+".";tl.appendChild(n);
-    var aisV="8,26.4,56.3",aisF=null;
-    function aisSrc(){var v=aisV.split(","),nm=document.getElementById("ais-names").checked;var h=Math.max(480,Math.round(window.innerHeight*0.72));
-      return "https://www.vesselfinder.com/aismap?zoom="+v[0]+"&lat="+v[1]+"&lon="+v[2]+"&width=100%25&height="+h+"&names="+(nm?"true":"false")+"&mmsi=0&track=false&fleet=false&fleet_name=&fleet_hide_old_positions=false&clicktoact=false&store_pos=false&ra="}
-    window.loadAIS=function(){
-      var box=document.getElementById("ais-box");
-      if(!aisF){aisF=document.createElement("iframe");aisF.title="Mappa delle navi in tempo reale (VesselFinder)";aisF.setAttribute("allowfullscreen","");box.innerHTML="";box.appendChild(aisF)}
-      aisF.src=aisSrc();
-    };
-    document.getElementById("ais-load").addEventListener("click",window.loadAIS);
-    document.querySelectorAll(".ais-tools button").forEach(function(bt){bt.addEventListener("click",function(){aisV=bt.dataset.v;document.querySelectorAll(".ais-tools button").forEach(function(x){x.setAttribute("aria-pressed",x===bt?"true":"false")});window.loadAIS()})});
-    document.getElementById("ais-names").addEventListener("change",function(){if(aisF)window.loadAIS()});
-    if((location.hash||"").slice(1)==="navi")window.loadAIS();
   })();
   // etichette paesi e mari
   var CL=[["Iran",55.5,32.4,1],["Iraq",43.6,33.2,1],["Arabia Saudita",44.2,21.6,1],["Yemen",47.5,15.9,1],["Oman",56.6,20.8,1],["EAU",54.2,23.4,2],["Qatar",51.2,24.55,3],["Kuwait",47.5,29.6,3],["Giordania",36.9,30.4,2],["Siria",38.5,35.2,2],["Egitto",33.6,27.2,2],["Israele",34.6,30.9,2],["Turchia",37,38.8,2],["Afghanistan",62.3,34.5,2],["Pakistan",62.3,27.3,2],["Sudan",35.5,17.5,2],["Eritrea",38.3,15.2,3]];
@@ -1510,7 +1513,7 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
     var kl=k*(ppu<0.6?0.64:1);LG.forEach(function(g){g.setAttribute("transform","scale("+kl.toFixed(4)+")")});
     labelEls.forEach(function(o){o.e.style.fontSize=(o.base*k).toFixed(2)+"px";o.e.style.display=o.pr<=Math.max(lvl,ppu>0.55?2:1)?"":"none";o.e.style.strokeWidth=(3*k)+"px"});
   }
-  document.querySelectorAll(".maptools button").forEach(function(b){b.addEventListener("click",function(){cur=b.dataset.z;document.querySelectorAll(".maptools button").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});layout()})});
+  document.querySelectorAll("#mappa .maptools button").forEach(function(b){b.addEventListener("click",function(){cur=b.dataset.z;document.querySelectorAll("#mappa .maptools button").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});layout()})});
   document.querySelectorAll(".layers input").forEach(function(i){i.addEventListener("change",function(){var on=i.checked,l=i.dataset.l;document.querySelectorAll('#map [data-l="'+l+'"]').forEach(function(e){e.style.display=on?"":"none"})})});
   window.addEventListener("resize",layout);
   /* Leader: ritratti con licenza libera da Wikimedia Commons, incorporati nella pagina */
@@ -1589,14 +1592,14 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
   var ZOOM={hormuz:"gulf",bandar:"gulf",kharg:"gulf",rastanura:"gulf",abqaiq:"gulf",doha:"gulf",udeid:"gulf",bahrain:"gulf",dhafra:"gulf",arifjan:"gulf",psab:"gulf",riyadh:"gulf",fordow:"nuc",natanz:"nuc",isfahan:"nuc",khondab:"nuc",tehran:"nuc",bushehr:"gulf",rabigh:"red",yanbu:"red",sanaa:"red"};
   (function(){var h=document.createElement("h4");h.textContent="Leader";var ul=document.createElement("ul");
     Object.keys(LDS).forEach(function(id){var L=LDS[id];var li=document.createElement("li");var b=document.createElement("button");b.type="button";b.textContent=L.n;
-      b.addEventListener("click",function(){cur="all";document.querySelectorAll(".maptools button").forEach(function(x){x.setAttribute("aria-pressed",x.dataset.z===cur?"true":"false")});selectLead(id);layout();svg.scrollIntoView({block:"center"})});
+      b.addEventListener("click",function(){cur="all";document.querySelectorAll("#mappa .maptools button").forEach(function(x){x.setAttribute("aria-pressed",x.dataset.z===cur?"true":"false")});selectLead(id);layout();svg.scrollIntoView({block:"center"})});
       li.appendChild(b);ul.appendChild(li)});
     var wrap=document.createElement("div");wrap.appendChild(h);wrap.appendChild(ul);box.appendChild(wrap)})();
   groups.forEach(function(gr){
     var h=document.createElement("h4");h.textContent=gr[0];
     var ul=document.createElement("ul");
     gr[1].forEach(function(id){var p=mks[id];var li=document.createElement("li");var b=document.createElement("button");b.type="button";b.textContent=p.n;
-      b.addEventListener("click",function(){cur=ZOOM[id]||"all";document.querySelectorAll(".maptools button").forEach(function(x){x.setAttribute("aria-pressed",x.dataset.z===cur?"true":"false")});select(id);layout();svg.scrollIntoView({block:"center"})});
+      b.addEventListener("click",function(){cur=ZOOM[id]||"all";document.querySelectorAll("#mappa .maptools button").forEach(function(x){x.setAttribute("aria-pressed",x.dataset.z===cur?"true":"false")});select(id);layout();svg.scrollIntoView({block:"center"})});
       li.appendChild(b);ul.appendChild(li)});
     var wrap=document.createElement("div");wrap.appendChild(h);wrap.appendChild(ul);box.appendChild(wrap);
   });
@@ -1799,6 +1802,94 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
   svg.addEventListener("click",function(ev){if(ev.target===svg)all()});
 })();
 </script>
+<script>
+/* Navi: mappa fatta da noi. Dati: GitHub Action "Navi AIS" -> ramo dati/navi.json (aisstream.io) */
+(function(){
+  var URL_DATI="https://raw.githubusercontent.com/edoardopalo877-collab/osservatorio-hormuz/dati/navi.json";
+  var CATS=[
+    {k:"tank",n:"Petroliere",v:"--oil"},
+    {k:"cargo",n:"Cargo e container",v:"--us"},
+    {k:"pass",n:"Passeggeri",v:"--med"},
+    {k:"mil",n:"Militari e autorità",v:"--ir"},
+    {k:"serv",n:"Rimorchiatori, pesca e servizio",v:"--nuc"},
+    {k:"alt",n:"Altre o sconosciute",v:"--neutral"}];
+  var TIPI={30:"Peschereccio",31:"Rimorchiatore",32:"Rimorchiatore",33:"Dragaggio",34:"Lavori subacquei",35:"Nave militare",36:"Barca a vela",37:"Diporto",50:"Pilota",51:"Soccorso",52:"Rimorchiatore",53:"Servizio portuale",55:"Forze dell'ordine",58:"Sanitaria"};
+  var STATI={0:"In navigazione a motore",1:"All'ancora",2:"Senza governo",3:"Manovra limitata",4:"Vincolata dal pescaggio",5:"Ormeggiata",6:"Incagliata",7:"In pesca",8:"In navigazione a vela"};
+  var MID={"422":"Iran","403":"Arabia Saudita","470":"EAU","471":"EAU","466":"Qatar","408":"Bahrein","447":"Kuwait","425":"Iraq","461":"Oman","473":"Yemen","475":"Yemen","622":"Egitto","412":"Cina","413":"Cina","414":"Cina","419":"India","463":"Pakistan","431":"Giappone","432":"Giappone","440":"Corea del Sud","441":"Corea del Sud","477":"Hong Kong","563":"Singapore","564":"Singapore","565":"Singapore","566":"Singapore","533":"Malaysia","525":"Indonesia","273":"Russia","271":"Turchia","636":"Liberia","637":"Liberia","538":"Isole Marshall","351":"Panama","352":"Panama","353":"Panama","354":"Panama","355":"Panama","356":"Panama","357":"Panama","370":"Panama","371":"Panama","372":"Panama","373":"Panama","374":"Panama","215":"Malta","229":"Malta","248":"Malta","249":"Malta","256":"Malta","237":"Grecia","239":"Grecia","240":"Grecia","241":"Grecia","209":"Cipro","210":"Cipro","212":"Cipro","308":"Bahamas","309":"Bahamas","311":"Bahamas","232":"Regno Unito","233":"Regno Unito","234":"Regno Unito","235":"Regno Unito","338":"Stati Uniti","366":"Stati Uniti","367":"Stati Uniti","368":"Stati Uniti","369":"Stati Uniti","247":"Italia","226":"Francia","227":"Francia","228":"Francia","211":"Germania","218":"Germania","244":"Paesi Bassi","245":"Paesi Bassi","246":"Paesi Bassi","257":"Norvegia","258":"Norvegia","259":"Norvegia","219":"Danimarca","220":"Danimarca","572":"Tuvalu","577":"Vanuatu","667":"Sierra Leone","613":"Camerun","620":"Comore","677":"Tanzania","341":"Saint Kitts e Nevis","312":"Belize","457":"Mongolia","671":"Togo","518":"Isole Cook","511":"Palau","376":"Saint Vincent","377":"Saint Vincent","605":"Algeria","672":"Tunisia","242":"Marocco","416":"Taiwan","574":"Vietnam","548":"Filippine","567":"Thailandia","417":"Sri Lanka","405":"Bangladesh"};
+  function cat(t){if(t>=80&&t<=89)return"tank";if(t>=70&&t<=79)return"cargo";if(t>=60&&t<=69)return"pass";if(t===35||t===55)return"mil";if(t>=30&&t<=59)return"serv";return"alt"}
+  function tipo(t){if(!t)return"Non dichiarato";if(t>=80&&t<=89)return"Petroliera / cisterna";if(t>=70&&t<=79)return"Cargo";if(t>=60&&t<=69)return"Passeggeri";if(t>=40&&t<=49)return"Unità veloce";return TIPI[t]||("Altro (codice "+t+")")}
+  function col(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()||"#888"}
+  function fmtOra(sec){var d=new Date(sec*1000);return d.toLocaleString("it-IT",{timeZone:"Europe/Rome",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+  function fa(sec){var m=Math.round((Date.now()/1000-sec)/60);if(m<1)return"ora";if(m<60)return m+" min fa";var h=Math.floor(m/60);return h+" h "+(m%60)+" min fa"}
+  var map=null,layer=null,tracks=null,on={},dati=null,busy=false,timer=null;
+  CATS.forEach(function(c){on[c.k]=true});
+  function css(h){if(document.querySelector('link[href="'+h+'"]'))return;var l=document.createElement("link");l.rel="stylesheet";l.href=h;document.head.appendChild(l)}
+  function js(src,cb){if(window.L)return cb();var s=document.createElement("script");s.src=src;s.onload=cb;s.onerror=function(){stato("Non riesco a caricare la libreria della mappa. Riprova più tardi.")};document.head.appendChild(s)}
+  function stato(t){document.getElementById("nv-stato").textContent=t}
+  function initMap(){
+    map=L.map("nv-map",{zoomControl:true,worldCopyJump:false,preferCanvas:true}).setView([26.3,56.2],8);window.NVMAP=map;
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:14,minZoom:3,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · navi: aisstream.io'}).addTo(map);
+    tracks=L.layerGroup().addTo(map);layer=L.layerGroup().addTo(map);
+    map.on("click",function(){chiudi()});
+    document.querySelectorAll(".nv-zone button").forEach(function(b){b.addEventListener("click",function(){var v=b.dataset.v.split(",").map(Number);map.setView([v[0],v[1]],v[2]);document.querySelectorAll(".nv-zone button").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")})})});
+  }
+  function filtri(cnt){
+    var box=document.getElementById("nv-filt");box.innerHTML="";
+    CATS.forEach(function(c){
+      var l=document.createElement("label");var i=document.createElement("input");i.type="checkbox";i.checked=on[c.k];
+      i.addEventListener("change",function(){on[c.k]=i.checked;disegna()});
+      var dot=document.createElement("i");dot.style.background=col(c.v);
+      var t=document.createElement("span");t.textContent=c.n+" ";var b=document.createElement("b");b.textContent=cnt[c.k]||0;t.appendChild(b);
+      l.appendChild(i);l.appendChild(dot);l.appendChild(t);box.appendChild(l);
+    });
+  }
+  function chiudi(){var p=document.getElementById("nv-info");p.hidden=true;tracks.clearLayers()}
+  function scheda(id,s){
+    var p=document.getElementById("nv-info");p.innerHTML="";p.hidden=false;
+    var x=document.createElement("button");x.className="x";x.type="button";x.setAttribute("aria-label","Chiudi");x.textContent="×";x.addEventListener("click",chiudi);p.appendChild(x);
+    var h=document.createElement("h4");h.textContent=s.n||("MMSI "+id);p.appendChild(h);
+    var dl=document.createElement("dl");
+    var righe=[["Tipo",tipo(s.ty)],["Bandiera",MID[id.slice(0,3)]||"—"],["Velocità",s.v!=null?String(s.v).replace(".",",")+" nodi":"—"],["Rotta",s.c!=null?s.c+"°":"—"],["Stato",STATI[s.st]||"—"],["Destinazione",s.de||"—"],["Lunghezza",s.lu?s.lu+" m":"—"],["Pescaggio",s.dr?String(s.dr).replace(".",",")+" m":"—"],["Ultimo segnale",fmtOra(s.t)+" ("+fa(s.t)+")"],["MMSI",id+(s.imo?" · IMO "+s.imo:"")]];
+    righe.forEach(function(r){var dt=document.createElement("dt");dt.textContent=r[0];var dd=document.createElement("dd");dd.textContent=r[1];dl.appendChild(dt);dl.appendChild(dd)});
+    p.appendChild(dl);
+    tracks.clearLayers();
+    if(s.tr&&s.tr.length>1)L.polyline(s.tr.map(function(q){return[q[0],q[1]]}),{color:col("--ink"),weight:2,dashArray:"4 4",opacity:.8}).addTo(tracks);
+  }
+  function disegna(){
+    if(!map||!dati)return;layer.clearLayers();
+    var cnt={},vis=0,ora=Date.now()/1000;
+    Object.keys(dati.navi).forEach(function(id){
+      var s=dati.navi[id];var k=cat(s.ty);cnt[k]=(cnt[k]||0)+1;
+      if(!on[k])return;vis++;
+      var vecchio=ora-s.t>3*3600;
+      var c=col(CATS.filter(function(x){return x.k===k})[0].v);
+      var m=L.circleMarker([s.la,s.lo],{radius:k==="tank"?6:4.5,color:col("--paper"),weight:1,fillColor:c,fillOpacity:vecchio?.35:.95});
+      if(s.v>0.5&&s.c!=null){var r=0.012*Math.max(4,Math.min(s.v,20))/4,a=s.c*Math.PI/180;L.polyline([[s.la,s.lo],[s.la+r*Math.cos(a),s.lo+r*Math.sin(a)/Math.cos(s.la*Math.PI/180)]],{color:c,weight:2,opacity:vecchio?.35:.9,interactive:false}).addTo(layer)}
+      m.on("click",function(e){L.DomEvent.stopPropagation(e);scheda(id,s)});
+      m.bindTooltip(s.n||("MMSI "+id),{direction:"top",offset:[0,-4]});
+      m.addTo(layer);
+    });
+    filtri(cnt);
+    var tot=Object.keys(dati.navi).length;
+    var t=Date.parse(dati.agg)/1000;
+    stato(tot?("Posizioni aggiornate: "+fmtOra(t)+" ora italiana ("+fa(t)+"). "+tot+" navi viste nelle ultime 12 ore, "+(cnt.tank||0)+" petroliere. Le navi sbiadite non trasmettono da oltre 3 ore."):"Nessuna nave ricevuta nell'ultimo giro di raccolta.");
+  }
+  function scarica(){
+    if(busy)return;busy=true;
+    fetch(URL_DATI+"?t="+Math.floor(Date.now()/300000),{cache:"no-store"}).then(function(r){if(!r.ok)throw r.status;return r.json()}).then(function(d){dati=d;disegna()}).catch(function(){if(!dati)stato("Le posizioni non sono ancora disponibili: la raccolta automatica sta partendo. Riprova tra qualche minuto.")}).then(function(){busy=false});
+  }
+  window.loadAIS=function(){
+    css("https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css");
+    js("https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js",function(){
+      if(!map)initMap();else map.invalidateSize();
+      scarica();
+      if(!timer)timer=setInterval(function(){if(!document.getElementById("navi").hidden)scarica()},5*60*1000);
+    });
+  };
+  if((location.hash||"").slice(1)==="navi")window.loadAIS();
+})();
+</script>
+
 
 
 
