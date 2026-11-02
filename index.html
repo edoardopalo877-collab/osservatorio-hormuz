@@ -223,6 +223,25 @@ svg#map{display:block;width:100%;height:auto;background:var(--sea);aspect-ratio:
 .legend{display:flex;flex-direction:column;gap:6px;font-size:13px;margin-top:6px}
 .legend div{display:flex;gap:8px;align-items:center}
 .legend svg{flex:none}
+.flw{fill:none;vector-effect:non-scaling-stroke;stroke-linecap:round;cursor:pointer;opacity:.85}
+.flw.ghost{stroke:var(--neutral);opacity:.22;cursor:default;pointer-events:none}
+.flw.stop{stroke:var(--neutral);stroke-dasharray:3 5;opacity:.9}
+.flw.sel{opacity:1;filter:drop-shadow(0 0 2px var(--ink))}
+.flw-hit{fill:none;stroke:transparent;stroke-width:16;vector-effect:non-scaling-stroke;cursor:pointer}
+.flw.mov{stroke-dasharray:10 7}
+@media (prefers-reduced-motion:no-preference){.flw.mov{animation:flowmv 1.4s linear infinite}}
+@keyframes flowmv{to{stroke-dashoffset:-17}}
+.flow-tab{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+.flow-tab th,.flow-tab td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--neutral-soft);vertical-align:top}
+.flow-tab td.n{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700}
+.flow-tab button{all:unset;cursor:pointer;border-bottom:1px dotted var(--muted)}
+.flow-tab-wrap{overflow-x:auto}
+.ais-box{position:relative;border:1px solid var(--neutral-soft);border-radius:8px;overflow:hidden;background:var(--neutral-soft);margin-top:10px}
+.ais-box iframe{display:block;width:100%;height:480px;border:0}
+.ais-ph{padding:28px 16px;text-align:center;font-size:14px}
+.ais-ph button{font:inherit;font-weight:700;padding:8px 14px;border-radius:6px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+.ais-links{font-size:13.5px;margin:8px 0 0}
+@media (max-width:640px){.ais-box iframe{height:380px}}
 .places{columns:3 220px;column-gap:20px;margin-top:20px;font-size:13.5px}
 .places h4{font-family:var(--display);font-stretch:85%;font-size:15px;margin:0 0 4px;break-after:avoid}
 .places ul{list-style:none;margin:0 0 14px;padding:0;break-inside:avoid}
@@ -582,7 +601,7 @@ td.est{font-style:italic;color:var(--muted)}
 <!-- MAPPA -->
 <section class="page" id="mappa" hidden><div class="wrap">
   <h2>La mappa</h2>
-  <p class="intro">Tocca un simbolo per leggere cosa c'è e perché conta. Usa "Golfo e Hormuz" per ingrandire la zona più affollata.</p>
+  <p class="intro">Tocca un simbolo o una freccia dei flussi per leggere cosa c'è e perché conta. Usa "Golfo e Hormuz" per ingrandire la zona più affollata. Sotto la mappa: <a href="#mappa" onclick="document.getElementById('flussi').scrollIntoView();return false">i flussi di petrolio</a> e <a href="#mappa" onclick="document.getElementById('navi').scrollIntoView();return false">le navi in tempo reale</a>.</p>
 <div class="mapgrid">
     <div class="mapbox">
       <div class="maptools" role="group" aria-label="Zoom">
@@ -640,6 +659,7 @@ td.est{font-style:italic;color:var(--muted)}
         <label><input type="checkbox" id="l-us" data-l="us" checked>Basi USA</label>
         <label><input type="checkbox" id="l-city" data-l="city" checked>Città e mediatori</label>
         <label><input type="checkbox" id="l-lead" data-l="lead" checked>Leader</label>
+        <label><input type="checkbox" id="l-flow" data-l="flow" checked>Flussi di petrolio</label>
       </div>
     </div>
     <aside class="info" aria-live="polite">
@@ -655,10 +675,23 @@ td.est{font-style:italic;color:var(--muted)}
         <div><svg width="18" height="18" viewBox="-9 -9 18 18"><circle r="5" style="fill:var(--ink)"/></svg>Città · <span style="color:var(--med)">&#9679;</span> mediatore</div>
         <div><svg width="18" height="18" viewBox="0 0 18 18"><rect x="1" y="3" width="16" height="12" style="fill:url(#hatch)" style="stroke:var(--ir)" stroke-dasharray="3 2"/></svg>Area Houthi (indicativa)</div>
         <div><svg width="18" height="18" viewBox="0 0 18 18"><line x1="1" y1="9" x2="17" y2="9" style="stroke:var(--oil)" stroke-width="2" stroke-dasharray="4 3"/></svg>Oleodotto Est-Ovest</div>
+        <div><svg width="18" height="18" viewBox="0 0 18 18"><line x1="1" y1="9" x2="17" y2="9" style="stroke:var(--oil)" stroke-width="5"/></svg>Flusso di petrolio (spessore = barili al giorno)</div>
+        <div><svg width="18" height="18" viewBox="0 0 18 18"><line x1="1" y1="9" x2="17" y2="9" style="stroke:var(--neutral)" stroke-width="8" opacity=".3"/></svg>Flusso prima della guerra</div>
       </div>
     </aside>
   </div>
   <div class="places" id="places"></div>
+
+  <h3 class="sub" id="flussi">I flussi di petrolio oggi</h3>
+  <p class="note" id="fl-agg"></p>
+  <div class="flow-tab-wrap"><table class="flow-tab" id="fl-tab"><thead><tr><th>Flusso</th><th>Oggi</th><th>Prima della guerra</th><th>Fonte</th></tr></thead><tbody></tbody></table></div>
+
+  <h3 class="sub" id="navi">Navi in tempo reale</h3>
+  <p class="intro" style="margin-bottom:8px">Le posizioni AIS delle navi tra Golfo, Hormuz e Golfo di Oman, aggiornate di continuo da VesselFinder. Tocca una nave per nome, tipo e rotta.</p>
+  <div class="tiles" id="ais-tiles"></div>
+  <div class="ais-box" id="ais-box"><div class="ais-ph"><p style="margin:0 0 10px">La mappa delle navi è un servizio esterno (VesselFinder) e si carica solo se lo chiedi.</p><button type="button" id="ais-load">Carica la mappa delle navi</button></div></div>
+  <p class="ais-links">Se la mappa non si carica: <a href="https://www.vesselfinder.com/?p=26.3,55.5,7" target="_blank" rel="noopener">VesselFinder</a> · <a href="https://www.marinetraffic.com/en/ais/home/centerx:55.5/centery:26.3/zoom:7" target="_blank" rel="noopener">MarineTraffic</a> · <a href="https://hormuz.now/" target="_blank" rel="noopener">hormuz.now</a> (conteggio dei transiti)</p>
+  <p class="note" style="margin-top:8px"><b>Attenzione:</b> durante la guerra molte petroliere spengono il transponder AIS o hanno il GPS disturbato, quindi la mappa mostra solo una parte delle navi. Le petroliere iraniane viaggiano quasi tutte "al buio". I conteggi qui sopra sono quindi un minimo, non il totale.</p>
 
 </div></section>
 
@@ -1319,6 +1352,90 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
   el("path",{"class":"houthi",d:"M"+H.map(function(p){return P(p[0],p[1]).join(",")}).join("L")+"Z",fill:"url(#hatch)"},gO);
   var ab=P(49.67,25.93),yb=P(38.06,24.09),mid=P(44,24.6);
   el("path",{"class":"pipe","data-l":"oil",d:"M"+ab.join(",")+"Q"+mid.join(",")+" "+yb.join(",")},gO);
+  /* Flussi di petrolio: dati aggiornati dal monitoraggio (FLUSSI_AGG, FLUSSI, AISV) */
+  var FLUSSI_AGG="2 nov 2026, 09:30 ora italiana. Dati di ottobre, gli ultimi disponibili; i numeri del greggio escono con 1-4 settimane di ritardo.";
+  var FLUSSI=[
+    {id:"hormuz",n:"Hormuz → Asia",v:11.7,vs:"~11,7 mb/g",pre:20,pres:"~20 mb/g",st:"mov",
+     pts:[[50.2,26.7],[52.8,26.5],[55.2,26.2],[56.5,26.4],[57.4,25.4],[59,24.2],[61.2,22.9],[63.2,22.3]],
+     t:"Greggio e prodotti che escono dal Golfo attraverso lo stretto: media di ottobre secondo Kpler (9,8 a settembre). Quasi il 90% va in Asia: Cina, India, Giappone, Corea.",
+     w:"È ancora poco più della metà dei livelli di prima della guerra. Ogni attacco o mina nello stretto rischia di togliere una parte di questi barili, ed è il motivo principale del premio di rischio sul Brent.",src:"Kpler, ott 2026 (via OilPrice); EIA per il pre-guerra"},
+    {id:"ew",n:"Oleodotto Est-Ovest (Abqaiq → Yanbu)",v:7,vs:"~6-7 mb/g",pre:2,pres:"~2 mb/g",st:"mov",
+     pts:[[49.67,25.93],[47,25.3],[44,24.6],[41,24.2],[38.06,24.09]],
+     t:"L'Arabia Saudita pompa il greggio dalla costa del Golfo a Yanbu sul Mar Rosso, per evitare Hormuz. Aramco dice di essere al massimo (~7 mb/g, 23 ott); il ministro dell'Energia parlava di 5,8 (6 ott). Non c'è una misura indipendente.",
+     w:"È la valvola di sfogo più importante. Gli Houthi rivendicano attacchi alle stazioni di pompaggio (24 e 26 ott, non confermati da Riad): un danno serio qui toglierebbe milioni di barili.",src:"Aramco (Fortune, 23 ott); ministero saudita (6 ott)"},
+    {id:"yanbu",n:"Export da Yanbu (Mar Rosso)",v:3.5,vs:"2,2-5 mb/g",pre:0.7,pres:"<1 mb/g",st:"mov",
+     pts:[[38.06,24.09],[36.6,26.2],[34.6,28.2],[32.6,29.9],[32.3,31.4]],
+     pts2:[[38.06,24.09],[39.6,20.6],[41.4,16.6],[42.9,13.6],[43.5,12.6],[46,12],[49.5,12.6]],
+     t:"Le petroliere caricano a Yanbu e vanno verso Suez e l'Europa o verso Bab el-Mandeb e l'Asia. Le stime di ottobre non coincidono: 2,2 mb/g secondo Kpler (26 ott), circa 5 secondo Bloomberg (27 ott). Il resto del greggio dell'oleodotto va alle raffinerie saudite.",
+     w:"La differenza tra le stime dipende in parte dalle navi che spengono il transponder. La rotta sud passa davanti allo Yemen, a portata degli Houthi.",src:"Kpler via Asharq Business (26 ott); Bloomberg (27 ott)"},
+    {id:"fuj",n:"Oleodotto Habshan → Fujairah (EAU)",v:1.8,vs:"~1,8 mb/g",pre:1.1,pres:"~1-1,5 mb/g",st:"mov",
+     pts:[[53.6,23.65],[54.9,24.2],[55.8,24.7],[56.33,25.12],[57.6,24.4],[59.5,23.4],[61.8,22.4]],
+     t:"Gli Emirati portano il greggio di Abu Dhabi a Fujairah, sul Golfo di Oman, fuori dallo stretto. L'oleodotto lavora al massimo (~1,8 mb/g). Al porto di Fujairah le partenze sono al 75% del normale (dati al 23 ott).",
+     w:"Davanti a Fujairah e Khor Fakkan aspettano circa 190 navi (JMIC, 25 ott): è anche il punto dove si accumulano le navi bloccate.",src:"Kpler; IMF PortWatch via hormuz.now; JMIC"},
+    {id:"iran",n:"Export iraniano via mare (Kharg)",v:0,vs:"~0 (blocco USA)",pre:1.6,pres:"~1,5-1,7 mb/g",st:"stop",
+     pts:[[50.32,29.24],[51.6,28.3],[53.6,27.1],[55.4,26.6],[56.5,26.4]],
+     t:"Dal 25 agosto il blocco navale USA ferma quasi tutto il greggio iraniano via mare. Qualche carico \"al buio\" passa ancora: il 1 nov TankerTrackers ha segnalato 2 milioni di barili arrivati in Cina dopo 3,5 mesi in mare.",
+     w:"Senza export l'Iran perde la sua prima entrata in valuta: è il motivo per cui chiede la fine del blocco tra le condizioni per riaprire Hormuz.",src:"TankerTrackers; Iran International (1 nov)"},
+    {id:"lng",n:"GNL del Qatar (Ras Laffan)",v:0.5,vs:"~22% dei carichi normali",pre:3,pres:"~4,8 navi al giorno",st:"stop",lng:true,
+     pts:[[51.55,25.9],[52.8,26.3],[54.8,26.3],[56.5,26.4]],
+     t:"Il gas liquefatto del Qatar esce solo con il contagocce: 1,1 partenze al giorno contro 4,8 prima della guerra (dati al 23 ott). QatarEnergy ha esteso la forza maggiore fino a fine dicembre.",
+     w:"Non è petrolio, ma pesa sull'Europa: il gas TTF ha superato i 100 €/MWh il 28 ott.",src:"IMF PortWatch via hormuz.now; Reuters (27 ott)"}
+  ];
+  window.AISV={d:"1 nov 2026, 22:50 ora italiana",t7:18,pd:2.6,pre:47.6,reg:405,att:492,src:"hormuz.now (navi con AIS acceso), IMF PortWatch per il pre-crisi, JMIC per le navi in attesa"};
+  var gF=el("g",{id:"flows","data-l":"flow"});svg.insertBefore(gF,gL);
+  function fpath(a){return "M"+a.map(function(q){return P(q[0],q[1]).map(function(v){return v.toFixed(1)}).join(",")}).join("L")}
+  var FLW={};
+  FLUSSI.forEach(function(fl){
+    var ds=[fpath(fl.pts)];if(fl.pts2)ds.push(fpath(fl.pts2));
+    var es=[];
+    ds.forEach(function(d){
+      el("path",{"class":"flw ghost",d:d,"stroke-width":(2+fl.pre*1.1).toFixed(1)},gF);
+    });
+    ds.forEach(function(d){
+      var col=fl.lng?"var(--med)":"var(--oil)";
+      var p=el("path",{"class":"flw "+fl.st,d:d,"stroke-width":(fl.st==="stop"?2.5:(2+fl.v*1.1)).toFixed(1)},gF);
+      if(fl.st!=="stop")p.style.stroke=col;else if(fl.lng)p.style.stroke=col;
+      var h=el("path",{"class":"flw-hit",d:d,tabindex:"0",role:"button","aria-label":fl.n+": "+fl.vs},gF);
+      h.addEventListener("click",function(){selectFlow(fl.id)});
+      h.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();selectFlow(fl.id)}});
+      es.push(p);
+    });
+    fl.es=es;FLW[fl.id]=fl;
+  });
+  function selectFlow(id){
+    var fl=FLW[id];
+    PTS.forEach(function(q){q.g.classList.remove("sel")});
+    for(var lk in LDS)LDS[lk].g.classList.remove("sel");credit(null);
+    FLUSSI.forEach(function(q){q.es.forEach(function(e){e.classList.toggle("sel",q.id===id)})});
+    var c=document.getElementById("i-cat");c.textContent="Flusso di petrolio · "+fl.vs;c.style.color=fl.lng?"var(--med)":"var(--oil)";
+    document.getElementById("i-title").textContent=fl.n;
+    document.getElementById("i-text").textContent=fl.t+" Prima della guerra: "+fl.pres+".";
+    document.getElementById("i-why").textContent=fl.w+" Fonte: "+fl.src+".";
+  }
+  window.selectFlow=selectFlow;
+  (function(){
+    document.getElementById("fl-agg").textContent="Aggiornato: "+FLUSSI_AGG+" mb/g = milioni di barili al giorno.";
+    var tb=document.querySelector("#fl-tab tbody");
+    FLUSSI.forEach(function(fl){
+      var tr=document.createElement("tr");
+      var b=document.createElement("button");b.type="button";b.textContent=fl.n;
+      b.addEventListener("click",function(){selectFlow(fl.id);document.getElementById("map").scrollIntoView({behavior:"smooth",block:"center"})});
+      var td=document.createElement("td");td.appendChild(b);tr.appendChild(td);
+      [[fl.vs,"n"],[fl.pres,""],[fl.src,""]].forEach(function(x){var d=document.createElement("td");d.textContent=x[0];if(x[1])d.className=x[1];tr.appendChild(d)});
+      tb.appendChild(tr);
+    });
+    var A=window.AISV,tl=document.getElementById("ais-tiles");
+    var T=[["Petroliere passate da Hormuz","~"+String(A.pd).replace(".",",")+" al giorno",A.t7+" negli ultimi 7 giorni, contro ~"+String(A.pre).replace(".",",")+" al giorno prima della crisi"],["Petroliere visibili nella regione",String(A.reg),"con il transponder acceso"],["Navi in attesa fuori dallo stretto","~"+A.att,"stima JMIC del 25 ott"]];
+    T.forEach(function(x){var d=document.createElement("div");d.className="tile";d.innerHTML='<div class="k"></div><div class="v"></div><div class="s"></div>';d.children[0].textContent=x[0];d.children[1].textContent=x[1];d.children[2].textContent=x[2];tl.appendChild(d)});
+    var n=document.createElement("p");n.className="note";n.style.gridColumn="1/-1";n.textContent="Conteggi del "+A.d+". Fonte: "+A.src+".";tl.appendChild(n);
+    document.getElementById("ais-load").addEventListener("click",function(){
+      var box=document.getElementById("ais-box");
+      var f=document.createElement("iframe");
+      f.title="Mappa delle navi in tempo reale (VesselFinder)";f.loading="lazy";
+      f.src="https://www.vesselfinder.com/aismap?zoom=7&lat=26.3&lon=55.4&width=100%25&height=480&names=false&mmsi=0&track=false&fleet=false&fleet_name=&fleet_hide_old_positions=false&clicktoact=false&store_pos=true&ra=";
+      box.innerHTML="";box.appendChild(f);
+    });
+  })();
   // etichette paesi e mari
   var CL=[["Iran",55.5,32.4,1],["Iraq",43.6,33.2,1],["Arabia Saudita",44.2,21.6,1],["Yemen",47.5,15.9,1],["Oman",56.6,20.8,1],["EAU",54.2,23.4,2],["Qatar",51.2,24.55,3],["Kuwait",47.5,29.6,3],["Giordania",36.9,30.4,2],["Siria",38.5,35.2,2],["Egitto",33.6,27.2,2],["Israele",34.6,30.9,2],["Turchia",37,38.8,2],["Afghanistan",62.3,34.5,2],["Pakistan",62.3,27.3,2],["Sudan",35.5,17.5,2],["Eritrea",38.3,15.2,3]];
   var SL=[["Golfo Persico",51.4,27.6,1],["Golfo di Oman",59,24.4,2],["Mar Arabico",61,18,1],["Mar Rosso",38.9,19.6,1],["Mar Caspio",51.2,38.6,2],["Golfo di Aden",48.2,12.9,2],["Mediterraneo",33.5,34.6,2]];
@@ -1350,6 +1467,7 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
     var p=mks[id];
     PTS.forEach(function(q){q.g.classList.toggle("sel",q.id===id)});
     for(var lk in LDS)LDS[lk].g.classList.remove("sel");credit(null);
+    FLUSSI.forEach(function(q){q.es.forEach(function(e){e.classList.remove("sel")})});
     gM.appendChild(p.g);
     document.getElementById("i-cat").textContent=CAT[p.c];
     document.getElementById("i-cat").style.color=COL[p.c];
