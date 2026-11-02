@@ -708,7 +708,7 @@ td.est{font-style:italic;color:var(--muted)}
 <!-- NAVI -->
 <section class="page" id="navi" hidden><div class="wrap">
   <h2>Navi in tempo reale</h2>
-  <p class="intro" style="margin-bottom:8px">Le navi che trasmettono la loro posizione (AIS) tra Mediterraneo orientale, Mar Rosso, Golfo Persico, Golfo di Oman e Mar Arabico. Raccogliamo noi i dati ogni 15 minuti e li disegniamo qui. Trascina per spostarti, usa la rotellina o due dita per lo zoom, tocca una nave per i dettagli.</p>
+  <p class="intro" style="margin-bottom:8px">Le navi che trasmettono la loro posizione (AIS) tra Mediterraneo orientale, Mar Rosso, Golfo Persico, Golfo di Oman e Mar Arabico. Raccogliamo noi i dati: ogni 15 minuti dalle antenne a terra (tempo reale) e più volte al giorno dal satellite per Golfo, Hormuz e Mar Rosso (con circa 4 giorni di ritardo, perché lì non ci sono antenne gratuite). Trascina per spostarti, usa la rotellina o due dita per lo zoom, tocca una nave per i dettagli.</p>
   <div class="nv-bar">
     <div class="maptools nv-zone" role="group" aria-label="Zone">
       <button type="button" data-v="24.5,49,5" aria-pressed="false">Tutta la regione</button>
@@ -727,7 +727,7 @@ td.est{font-style:italic;color:var(--muted)}
   <h3 class="sub">Quante navi passano</h3>
   <div class="tiles" id="ais-tiles"></div>
   <p class="note" style="margin-top:10px"><b>Cosa non si vede:</b> durante la guerra molte petroliere spengono il transponder AIS o hanno il GPS disturbato, e le petroliere iraniane viaggiano quasi tutte "al buio". La copertura dipende anche dalle antenne a terra: lontano dalla costa i segnali arrivano meno. La mappa è quindi un minimo, non il totale delle navi in mare.</p>
-  <p class="note" style="margin-top:8px">Fonte delle posizioni: aisstream.io (rete di ricevitori AIS). Mappa di base © OpenStreetMap. I flussi di petrolio (quanti barili passano da Hormuz, Yanbu, Fujairah) sono sulla pagina <a href="#mappa">Mappa</a>.</p>
+  <p class="note" style="margin-top:8px">Fonti delle posizioni: aisstream.io (rete di ricevitori AIS a terra, tempo reale) e <a href="https://globalfishingwatch.org" target="_blank" rel="noopener">Powered by Global Fishing Watch</a> (AIS anche satellitare, circa 4 giorni di ritardo, licenza CC BY-NC 4.0). Mappa di base © OpenStreetMap. I flussi di petrolio (quanti barili passano da Hormuz, Yanbu, Fujairah) sono sulla pagina <a href="#mappa">Mappa</a>.</p>
 </div></section>
 
 <!-- ECONOMIA -->
@@ -1807,6 +1807,10 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
 /* Navi: mappa fatta da noi. Dati: GitHub Action "Navi AIS" -> ramo dati/navi.json (aisstream.io) */
 (function(){
   var URL_DATI="https://raw.githubusercontent.com/edoardopalo877-collab/osservatorio-hormuz/dati/navi.json";
+  var URL_GFW="https://raw.githubusercontent.com/edoardopalo877-collab/osservatorio-hormuz/dati/gfw.json";
+  var gfw=null,onLive=true,onSat=true;
+  function catG(t){t=String(t||"").toLowerCase();if(/tanker|bunker/.test(t))return"tank";if(/cargo|carrier|container/.test(t))return"cargo";if(/passenger/.test(t))return"pass";if(/fishing|support|gear|seismic|tug/.test(t))return"serv";return"alt"}
+  var TIPI_G={cargo:"Cargo / merci",carrier:"Nave frigorifera (carrier)",bunker:"Bunker / rifornimento",fishing:"Peschereccio",passenger:"Passeggeri",support:"Supporto",gear:"Attrezzo da pesca",seismic_vessel:"Ricerca sismica",other:"Altro",tanker:"Petroliera"};
   var CATS=[
     {k:"tank",n:"Petroliere",v:"--oil"},
     {k:"cargo",n:"Cargo e container",v:"--us"},
@@ -1836,6 +1840,12 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
   }
   function filtri(cnt){
     var box=document.getElementById("nv-filt");box.innerHTML="";
+    [["Tempo reale (antenne a terra)",onLive,function(v){onLive=v}],["Satellite, "+(gfw?("giorno "+new Date(gfw.giorno+"T12:00:00Z").toLocaleDateString("it-IT",{day:"numeric",month:"short"})):"in arrivo"),onSat,function(v){onSat=v},1]].forEach(function(x){
+      var l=document.createElement("label");var i=document.createElement("input");i.type="checkbox";i.checked=x[1];
+      i.addEventListener("change",function(){x[2](i.checked);disegna()});
+      var dot=document.createElement("i");if(x[3]){dot.style.border="2px solid "+col("--ink");dot.style.background="transparent"}else dot.style.background=col("--ink");
+      var t=document.createElement("span");t.textContent=x[0];l.appendChild(i);l.appendChild(dot);l.appendChild(t);l.style.fontWeight="700";box.appendChild(l);
+    });
     CATS.forEach(function(c){
       var l=document.createElement("label");var i=document.createElement("input");i.type="checkbox";i.checked=on[c.k];
       i.addEventListener("change",function(){on[c.k]=i.checked;disegna()});
@@ -1856,10 +1866,30 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
     tracks.clearLayers();
     if(s.tr&&s.tr.length>1)L.polyline(s.tr.map(function(q){return[q[0],q[1]]}),{color:col("--ink"),weight:2,dashArray:"4 4",opacity:.8}).addTo(tracks);
   }
+  function schedaG(id,s){
+    var p=document.getElementById("nv-info");p.innerHTML="";p.hidden=false;
+    var x=document.createElement("button");x.className="x";x.type="button";x.setAttribute("aria-label","Chiudi");x.textContent="×";x.addEventListener("click",chiudi);p.appendChild(x);
+    var h=document.createElement("h4");h.textContent=s.n||("MMSI "+(s.mmsi||"?"));p.appendChild(h);
+    var dl=document.createElement("dl");
+    var tt=String(s.ty||"").toLowerCase();
+    [["Tipo",TIPI_G[tt]||s.ty||"—"],["Bandiera",s.fl||"—"],["Posizione del",String(s.t||"").replace("T"," ").replace(/:00Z?$/,"")+" UTC (dato satellitare, ~4 giorni fa)"],["MMSI",(s.mmsi||"—")+(s.imo?" · IMO "+s.imo:"")]].forEach(function(r){var dt=document.createElement("dt");dt.textContent=r[0];var dd=document.createElement("dd");dd.textContent=r[1];dl.appendChild(dt);dl.appendChild(dd)});
+    p.appendChild(dl);
+    var n=document.createElement("p");n.className="note";n.style.marginTop="8px";n.textContent="Fonte: Global Fishing Watch (non in tempo reale).";p.appendChild(n);
+    tracks.clearLayers();
+    if(s.tr&&s.tr.length>1)L.polyline(s.tr,{color:col("--ink"),weight:2,dashArray:"4 4",opacity:.8}).addTo(tracks);
+  }
   function disegna(){
-    if(!map||!dati)return;layer.clearLayers();
+    if(!map||(!dati&&!gfw))return;layer.clearLayers();
     var cnt={},vis=0,ora=Date.now()/1000;
-    Object.keys(dati.navi).forEach(function(id){
+    if(gfw&&onSat)Object.keys(gfw.navi).forEach(function(id){
+      var s=gfw.navi[id];var k=catG(s.ty);cnt[k]=(cnt[k]||0)+1;if(!on[k])return;
+      var c=col(CATS.filter(function(x){return x.k===k})[0].v);
+      var m=L.circleMarker([s.la,s.lo],{radius:k==="tank"?5.5:4,color:c,weight:2,fill:true,fillColor:c,fillOpacity:.12});
+      m.on("click",function(e){L.DomEvent.stopPropagation(e);schedaG(id,s)});
+      m.bindTooltip((s.n||"Nave")+" · satellite",{direction:"top",offset:[0,-4]});
+      m.addTo(layer);
+    });
+    if(dati&&onLive)Object.keys(dati.navi).forEach(function(id){
       var s=dati.navi[id];var k=cat(s.ty);cnt[k]=(cnt[k]||0)+1;
       if(!on[k])return;vis++;
       var vecchio=ora-s.t>3*3600;
@@ -1871,13 +1901,17 @@ window.addEventListener("hashchange",function(){if(location.hash==="#prezzo")dra
       m.addTo(layer);
     });
     filtri(cnt);
-    var tot=Object.keys(dati.navi).length;
-    var t=Date.parse(dati.agg)/1000;
-    stato(tot?("Posizioni aggiornate: "+fmtOra(t)+" ora italiana ("+fa(t)+"). "+tot+" navi viste nelle ultime 12 ore, "+(cnt.tank||0)+" petroliere. Le navi sbiadite non trasmettono da oltre 3 ore."):"Nessuna nave ricevuta nell'ultimo giro di raccolta.");
+    var parti=[];
+    if(dati){var t=Date.parse(dati.agg)/1000;parti.push("Tempo reale: "+Object.keys(dati.navi).length+" navi, aggiornate "+fmtOra(t)+" ("+fa(t)+"); solo dove ci sono antenne a terra (soprattutto Mediterraneo orientale). Pallini pieni; sbiaditi se non trasmettono da oltre 3 ore.")}
+    if(gfw){parti.push("Satellite: "+Object.keys(gfw.navi).length+" navi tra Golfo, Hormuz e Mar Rosso, ultima posizione del "+new Date(gfw.giorno+"T12:00:00Z").toLocaleDateString("it-IT",{day:"numeric",month:"long"})+" (Global Fishing Watch, circa 4 giorni di ritardo). Cerchi vuoti.")}
+    else parti.push("Satellite (Golfo e Mar Rosso): dati in arrivo.");
+    stato(parti.join(" "));
   }
   function scarica(){
     if(busy)return;busy=true;
-    fetch(URL_DATI+"?t="+Math.floor(Date.now()/300000),{cache:"no-store"}).then(function(r){if(!r.ok)throw r.status;return r.json()}).then(function(d){dati=d;disegna()}).catch(function(){if(!dati)stato("Le posizioni non sono ancora disponibili: la raccolta automatica sta partendo. Riprova tra qualche minuto.")}).then(function(){busy=false});
+    var k="?t="+Math.floor(Date.now()/300000);
+    function get(u){return fetch(u+k,{cache:"no-store"}).then(function(r){if(!r.ok)throw r.status;return r.json()}).catch(function(){return null})}
+    Promise.all([get(URL_DATI),get(URL_GFW)]).then(function(r){if(r[0])dati=r[0];if(r[1])gfw=r[1];if(dati||gfw)disegna();else stato("Le posizioni non sono ancora disponibili: la raccolta automatica sta partendo. Riprova tra qualche minuto.");busy=false});
   }
   window.loadAIS=function(){
     css("https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css");

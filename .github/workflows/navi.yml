@@ -5,6 +5,7 @@ on:
       box: {description: "Bounding box JSON (prova)", required: false, default: ""}
       durata: {description: "Secondi di ascolto", required: false, default: "540"}
       prova: {description: "1 = solo prova, non pubblica", required: false, default: "0"}
+      gfw: {description: "1 = forza Global Fishing Watch", required: false, default: "0"}
   schedule:
     - cron: "*/15 * * * *"
 permissions:
@@ -34,6 +35,14 @@ jobs:
         run: |
           if [ -z "$AISSTREAM_KEY" ]; then echo "Segreto AISSTREAM_KEY non ancora impostato: salto."; echo "SALTA=1" >> "$GITHUB_ENV"; exit 0; fi
           python codice/navi/raccogli.py dati/navi.json
+      - name: Global Fishing Watch (ogni 3 ore, dati satellitari con ~4 giorni di ritardo)
+        env:
+          GFW_TOKEN: ${{ secrets.GFW_TOKEN }}
+          FORZA: ${{ github.event.inputs.gfw }}
+        run: |
+          if [ -z "$GFW_TOKEN" ]; then echo "GFW_TOKEN non impostato: salto."; exit 0; fi
+          if [ "$FORZA" != "1" ] && [ -f dati/gfw.json ] && [ $(( $(date +%s) - $(date -r dati/gfw.json +%s) )) -lt 10800 ]; then echo "gfw.json recente"; exit 0; fi
+          python codice/navi/gfw.py dati/gfw.json || true
       - name: Pubblica sul ramo dati (un solo commit, senza storico)
         if: env.SALTA != '1' && github.event.inputs.prova != '1'
         run: |
@@ -42,6 +51,6 @@ jobs:
           git init -q -b dati
           git config user.name "github-actions[bot]"
           git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
-          git add navi.json
+          git add -A
           git commit -q -m "Navi $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:dati
